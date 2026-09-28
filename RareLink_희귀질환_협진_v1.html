@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RareLink · 희귀질환 다학제 협진</title>
+<style>
+:root {
+  --bg: #f5f7fb; --panel: #fff; --text: #1f2937; --muted: #6b7280; --line: #e5e7eb; --soft: #f3f4f6;
+  --blue: #2563eb; --green: #10b981; --amber: #f59e0b; --red: #dc2626; --purple: #7c3aed; --teal: #0d9488;
+}
+body.dark {
+  --bg: #111827; --panel: #1f2937; --text: #f9fafb; --muted: #9ca3af; --line: #374151; --soft: #273449;
+  --blue: #60a5fa; --green: #34d399; --amber: #fbbf24; --red: #f87171; --purple: #a78bfa; --teal: #2dd4bf;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; }
+.container { max-width: 1680px; margin: auto; padding: 20px; }
+.header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; border-bottom: 2px solid var(--line); padding-bottom: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.header h1 { font-size: 25px; margin: 0 0 6px; }
+.header p { margin: 0; color: var(--muted); font-size: 13px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button, input, select, textarea { font: inherit; }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 8px 11px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.btn:hover { filter: brightness(.97); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn:focus-visible, .tab-btn:focus-visible, .case-item:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn-success { background: var(--green); border-color: var(--green); color: #fff; }
+.btn-danger { background: var(--red); border-color: var(--red); color: #fff; }
+.btn-ghost { background: var(--soft); }
+.btn-sm { padding: 5px 8px; font-size: 11px; border-radius: 6px; }
+.link-btn { border: none; background: none; color: var(--blue); font-size: 11px; font-weight: 800; cursor: pointer; padding: 0; }
+.fb-status { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 6px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); }
+.fb-status.ok { color: var(--green); border-color: var(--green); }
+.fb-status.warn { color: var(--amber); border-color: var(--amber); }
+.fb-status.fail { color: var(--red); border-color: var(--red); }
+.inbox-badge { font-size: 12px; font-weight: 800; padding: 8px 12px; border-radius: 8px; background: var(--red); color: #fff; border: none; cursor: pointer; }
+.inbox-badge.zero { background: var(--soft); color: var(--muted); border: 1px solid var(--line); }
+.tab-nav { display: flex; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn { border: 1px solid transparent; background: transparent; color: var(--text); padding: 8px 13px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.tab-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.tab-btn:hover:not(.active) { background: var(--soft); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); min-width: 0; }
+.card h3 { margin: 0 0 12px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.card h4 { margin: 0 0 8px; font-size: 13px; }
+.note { font-size: 11px; color: var(--muted); margin: 6px 0 0; line-height: 1.6; }
+.empty { font-size: 12px; color: var(--muted); padding: 14px; text-align: center; background: var(--soft); border-radius: 8px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stack { display: grid; gap: 16px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.stat-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+.stat-num { font-size: 30px; font-weight: 800; margin-top: 4px; line-height: 1.1; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.badge { display: inline-block; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 99px; border: 1px solid var(--line); background: var(--soft); color: var(--text); white-space: nowrap; }
+.badge.b-open { border-color: var(--blue); color: var(--blue); }
+.badge.b-mdt { border-color: var(--purple); color: var(--purple); }
+.badge.b-done { border-color: var(--green); color: var(--green); }
+.badge.b-urgent { border-color: var(--red); color: #fff; background: var(--red); }
+.badge.b-wait { border-color: var(--amber); color: var(--text); background: color-mix(in srgb, var(--amber) 18%, var(--panel)); }
+.badge.b-lock { border-color: var(--teal); color: var(--teal); }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--text); }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.chip.hit { border-color: var(--green); background: color-mix(in srgb, var(--green) 12%, var(--panel)); }
+.chip.miss { border-style: dashed; color: var(--muted); background: transparent; }
+.chip .x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 0 0 2px; line-height: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.field { width: 100%; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 12px; }
+textarea.field { resize: vertical; min-height: 64px; line-height: 1.5; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > .grow { flex: 1; min-width: 140px; }
+.form-label { display: block; font-size: 12px; font-weight: 700; margin: 12px 0 6px; }
+
+/* 케이스 보드 */
+.board { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.case-list { display: grid; gap: 8px; max-height: calc(100vh - 260px); overflow-y: auto; padding-right: 2px; }
+.case-item { text-align: left; width: 100%; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 9px; padding: 10px 11px; cursor: pointer; border-left: 4px solid var(--line); }
+.case-item:hover { background: var(--soft); }
+.case-item.active { border-color: var(--blue); border-left-color: var(--blue); background: color-mix(in srgb, var(--blue) 6%, var(--panel)); }
+.case-item.urgent { border-left-color: var(--red); }
+.case-item .ci-top { display: flex; justify-content: space-between; gap: 6px; font-size: 10px; color: var(--muted); font-weight: 700; }
+.case-item .ci-title { font-size: 12px; font-weight: 800; margin: 5px 0; line-height: 1.4; }
+.case-item .ci-meta { font-size: 11px; color: var(--muted); }
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+.filter-btn { border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 99px; cursor: pointer; }
+.filter-btn.on { background: var(--text); color: var(--panel); border-color: var(--text); }
+.case-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.case-head h2 { margin: 6px 0 6px; font-size: 19px; line-height: 1.35; }
+.case-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.question-box { margin-top: 12px; padding: 11px 13px; border-radius: 8px; background: color-mix(in srgb, var(--blue) 7%, var(--panel)); border: 1px solid color-mix(in srgb, var(--blue) 40%, var(--line)); font-size: 13px; line-height: 1.6; }
+.question-box strong { color: var(--blue); }
+.odyssey { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.odyssey div { background: var(--soft); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--muted); font-weight: 700; }
+.odyssey b { display: block; font-size: 17px; color: var(--text); }
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; margin-top: 16px; align-items: start; }
+
+/* 진단 여정 */
+.tl { position: relative; padding-left: 18px; }
+.tl::before { content: ''; position: absolute; left: 5px; top: 4px; bottom: 4px; width: 2px; background: var(--line); }
+.tl-item { position: relative; padding: 0 0 12px; }
+.tl-item::before { content: ''; position: absolute; left: -17px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--panel); border: 2px solid var(--muted); }
+.tl-item.now::before { border-color: var(--blue); background: var(--blue); }
+.tl-date { font-size: 11px; font-weight: 800; color: var(--muted); }
+.tl-where { font-size: 12px; font-weight: 800; margin-top: 2px; }
+.tl-what { font-size: 12px; margin-top: 2px; line-height: 1.5; }
+.ex-item { display: flex; gap: 8px; font-size: 12px; padding: 7px 9px; background: var(--soft); border-radius: 6px; margin-top: 6px; line-height: 1.5; }
+.ex-item s { font-weight: 800; color: var(--muted); white-space: nowrap; }
+.kv { width: 100%; border-collapse: collapse; font-size: 12px; }
+.kv td { padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.kv td:first-child { color: var(--muted); font-weight: 700; width: 42%; }
+
+/* 감별진단 보드 */
+.cand { border: 1px solid var(--line); border-radius: 9px; padding: 12px; margin-top: 10px; background: var(--panel); }
+.cand.top { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue) inset; }
+.cand-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.cand-name { font-size: 14px; font-weight: 800; }
+.cand-by { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cand-pct { font-size: 22px; font-weight: 800; text-align: right; line-height: 1; }
+.cand-pct small { display: block; font-size: 10px; color: var(--muted); font-weight: 700; margin-top: 3px; }
+.bar { height: 7px; background: var(--soft); border-radius: 99px; overflow: hidden; margin: 9px 0 8px; border: 1px solid var(--line); }
+.bar > div { height: 100%; border-radius: 99px; }
+.votes { display: grid; gap: 5px; }
+.vote { font-size: 11px; line-height: 1.5; padding: 6px 8px; background: var(--soft); border-radius: 6px; }
+.vote .lv { font-weight: 800; }
+.lv-3 { color: var(--red); } .lv-2 { color: var(--amber); } .lv-1 { color: var(--blue); } .lv-0 { color: var(--muted); text-decoration: line-through; }
+.my-vote { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-top: 9px; font-size: 11px; font-weight: 700; color: var(--muted); }
+.vbtn { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 800; cursor: pointer; }
+.vbtn.on { background: var(--text); color: var(--panel); border-color: var(--text); }
+.next-test { margin-top: 8px; font-size: 11px; padding: 6px 8px; border-left: 3px solid var(--teal); background: color-mix(in srgb, var(--teal) 8%, var(--panel)); border-radius: 4px; }
+.agree { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 99px; margin-left: 6px; }
+.agree.ok { color: var(--green); border: 1px solid var(--green); }
+.agree.split { color: var(--red); border: 1px solid var(--red); }
+.agree.mid { color: var(--amber); border: 1px solid var(--amber); }
+
+/* 매칭 */
+.match { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.match:last-child { border-bottom: none; }
+.match-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.match-name { font-size: 13px; font-weight: 800; }
+.match-sub { font-size: 11px; color: var(--muted); }
+.match-score { font-size: 15px; font-weight: 800; }
+.check-hint { font-size: 11px; margin-top: 6px; line-height: 1.6; }
+.similar { margin-top: 10px; padding: 10px; background: var(--soft); border-radius: 8px; font-size: 12px; line-height: 1.6; }
+
+/* 토론 */
+.thread { display: grid; gap: 8px; max-height: 440px; overflow-y: auto; padding-right: 2px; }
+.post { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; }
+.post-body { background: var(--soft); border-radius: 8px; padding: 9px 11px; }
+.post-top { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--muted); }
+.post-top b { color: var(--text); font-size: 12px; }
+.post-text { font-size: 12px; margin-top: 4px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.post.sys .post-body { background: transparent; border: 1px dashed var(--line); }
+.mention { color: var(--blue); font-weight: 800; }
+.tag { font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); }
+.tag-의견 { color: var(--blue); border-color: var(--blue); }
+.tag-질문 { color: var(--amber); border-color: var(--amber); }
+.tag-검사 { color: var(--teal); border-color: var(--teal); }
+.tag-결론 { color: #fff; background: var(--green); border-color: var(--green); }
+.tag-요청 { color: var(--purple); border-color: var(--purple); }
+.composer { display: grid; gap: 8px; margin-top: 12px; }
+
+/* 액션 */
+.action { display: flex; gap: 9px; align-items: flex-start; padding: 8px 10px; background: var(--soft); border-radius: 7px; margin-top: 6px; font-size: 12px; }
+.action input { width: 16px; height: 16px; margin-top: 1px; cursor: pointer; }
+.action.done .action-text { text-decoration: line-through; color: var(--muted); }
+.action-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.action-meta .late { color: var(--red); font-weight: 800; }
+
+/* 협진 요청 */
+.consult { border: 1px solid var(--line); border-left: 4px solid var(--amber); border-radius: 8px; padding: 11px 12px; margin-top: 8px; background: var(--panel); }
+.consult.urgent { border-left-color: var(--red); }
+.consult.replied { border-left-color: var(--green); }
+.consult-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--muted); font-weight: 700; }
+.consult-q { font-size: 12px; margin: 6px 0; line-height: 1.6; }
+.consult-reply { font-size: 12px; margin-top: 6px; padding: 8px 10px; background: color-mix(in srgb, var(--green) 9%, var(--panel)); border-radius: 6px; line-height: 1.6; }
+.sla { font-weight: 800; }
+.sla.over { color: var(--red); }
+.consult-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+/* 전문가 */
+.experts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.expert { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
+.expert.rec { border-color: var(--purple); box-shadow: 0 0 0 1px var(--purple) inset; }
+.expert-top { display: flex; gap: 10px; align-items: center; }
+.expert-name { font-size: 14px; font-weight: 800; }
+.expert-dept { font-size: 11px; color: var(--muted); }
+.expert-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.expert-stats div { background: var(--soft); border-radius: 6px; padding: 6px; text-align: center; font-size: 10px; color: var(--muted); font-weight: 700; }
+.expert-stats b { display: block; font-size: 14px; color: var(--text); }
+.rec-why { font-size: 11px; color: var(--purple); font-weight: 700; }
+.avail { font-size: 10px; font-weight: 800; }
+.avail.on { color: var(--green); } .avail.busy { color: var(--amber); } .avail.off { color: var(--muted); }
+
+/* 회의 */
+.mdt { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--panel); margin-top: 10px; }
+.mdt.done { opacity: .85; }
+.mdt-when { font-size: 13px; font-weight: 800; }
+.agenda { display: grid; gap: 6px; margin-top: 10px; }
+.agenda-item { padding: 8px 10px; background: var(--soft); border-radius: 7px; font-size: 12px; line-height: 1.5; }
+.conclusion { margin-top: 6px; padding: 7px 9px; border-left: 3px solid var(--green); background: color-mix(in srgb, var(--green) 8%, var(--panel)); border-radius: 4px; font-size: 12px; }
+.check-list { display: grid; gap: 6px; max-height: 200px; overflow-y: auto; padding: 8px; border: 1px solid var(--line); border-radius: 8px; }
+.check-list label { display: flex; gap: 8px; align-items: center; font-size: 12px; cursor: pointer; }
+
+/* 라이브러리 */
+.lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.lib-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--panel); }
+.lib-dx { font-size: 16px; font-weight: 800; color: var(--green); margin: 4px 0; }
+.lib-row { font-size: 12px; line-height: 1.6; margin-top: 6px; }
+.lib-row b { color: var(--muted); font-weight: 800; margin-right: 4px; }
+
+/* 로그 */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table.data { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.data th { text-align: left; background: var(--soft); padding: 9px 10px; font-weight: 800; white-space: nowrap; }
+table.data td { padding: 8px 10px; border-top: 1px solid var(--line); }
+
+/* 모달 */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: var(--panel); border-radius: 12px; padding: 20px; max-width: 640px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+.modal-head h3 { margin: 0; font-size: 16px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.form-error { color: var(--red); font-size: 12px; font-weight: 700; margin-top: 10px; min-height: 16px; }
+.privacy-box { margin-top: 12px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--teal); background: color-mix(in srgb, var(--teal) 7%, var(--panel)); font-size: 12px; line-height: 1.6; }
+.privacy-box label { display: flex; gap: 8px; align-items: flex-start; font-weight: 700; cursor: pointer; }
+
+/* 로그인 */
+.login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--bg); padding: 20px; }
+.login-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 36px 32px; max-width: 420px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+.login-title { text-align: center; font-size: 26px; margin: 0 0 6px; }
+.login-sub { text-align: center; color: var(--muted); margin: 0 0 26px; font-size: 13px; }
+.login-label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
+.login-field { width: 100%; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 10px; font-size: 13px; margin-bottom: 18px; }
+.login-error { color: var(--red); font-size: 12px; font-weight: 700; margin: -8px 0 12px; min-height: 16px; }
+.login-hint { margin-top: 20px; padding: 12px; background: var(--soft); border: 1px solid var(--line); border-radius: 8px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+.footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 24px; padding: 14px; }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--panel); padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+
+@media (max-width: 1250px) { .detail-grid { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .board, .grid-2 { grid-template-columns: 1fr; } .case-list { max-height: 320px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<!-- 로그인 -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1 class="login-title">🧬 RareLink</h1>
+    <p class="login-sub">희귀질환 다학제 협진 플랫폼</p>
+    <label class="login-label" for="doctorSelect">의료진 선택</label>
+    <select id="doctorSelect" class="login-field" onkeydown="if(event.key==='Enter')loginUser()">
+      <option value="">의료진을 선택하세요</option>
+      <option value="심가원">심가원 (신장내과 · 시연 계정)</option>
+      <option value="이아연">이아연 (신경과 · 시연 계정)</option>
+      <option value="하유진">하유진 (소아청소년과 유전·대사 · 시연 계정)</option>
+    </select>
+    <label class="login-label" for="passwordInput">비밀번호</label>
+    <input id="passwordInput" class="login-field" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')loginUser()" />
+    <p id="loginError" class="login-error"></p>
+    <button id="loginBtn" onclick="loginUser()" class="btn btn-primary" style="width:100%;padding:12px;font-size:13px">로그인</button>
+    <div class="login-hint">
+      <strong>시연 안내</strong><br>
+      계정마다 다른 진료과 의료진 역할로 접속됩니다. 노트북 여러 대에서 각각 로그인하면 협진 요청·의견·투표가 실시간으로 오갑니다.<br>
+      모든 케이스는 교육용 가상 데이터이며 실제 환자 정보가 아닙니다.
+    </div>
+    <div style="text-align:center;margin-top:14px;"><span class="fb-status" id="fbStatusIndicatorLogin">🟡 연결 확인 중...</span></div>
+  </div>
+</div>
+
+<div id="mainApp" style="display:none;">
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>🧬 RareLink · 희귀질환 다학제 협진</h1>
+      <p id="userInfo">-</p>
+      <span class="fb-status" id="fbStatusIndicator">🟡 연결 확인 중...</span>
+    </div>
+    <div class="header-actions">
+      <button id="inboxBadge" class="inbox-badge zero" onclick="goTab('home')">📨 받은 협진 요청 0건</button>
+      <button class="btn btn-primary" onclick="openCaseForm()">＋ 새 케이스 등록</button>
+      <button class="btn" id="themeBtn" onclick="toggleTheme()">🌙 다크모드</button>
+      <button class="btn" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="tab-nav" role="tablist">
+    <button class="tab-btn active" data-tab="home" onclick="goTab('home')">🏠 내 협진</button>
+    <button class="tab-btn" data-tab="board" onclick="goTab('board')">🧩 케이스 보드</button>
+    <button class="tab-btn" data-tab="experts" onclick="goTab('experts')">👩‍⚕️ 전문가 찾기</button>
+    <button class="tab-btn" data-tab="mdt" onclick="goTab('mdt')">📅 다학제 회의</button>
+    <button class="tab-btn" data-tab="library" onclick="goTab('library')">📚 케이스 라이브러리</button>
+    <button class="tab-btn" data-tab="audit" onclick="goTab('audit')">🔐 열람 기록</button>
+  </div>
+
+  <!-- 탭 1: 내 협진 -->
+  <div id="tab-home" class="tab-content active">
+    <div class="grid-4" id="homeStats"></div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="stack">
+        <div class="card"><h3>📨 나에게 온 협진 요청 <span class="note" style="margin:0">긴급 24시간 · 일반 72시간 안에 회신</span></h3><div id="inboxList"></div></div>
+        <div class="card"><h3>📤 내가 보낸 협진 요청</h3><div id="outboxList"></div></div>
+      </div>
+      <div class="stack">
+        <div class="card"><h3>📅 다가오는 다학제 회의</h3><div id="homeMdt"></div></div>
+        <div class="card"><h3>✅ 내게 배정된 할 일</h3><div id="homeActions"></div></div>
+        <div class="card"><h3>🕒 참여 케이스 최근 활동</h3><div id="homeFeed"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 2: 케이스 보드 -->
+  <div id="tab-board" class="tab-content">
+    <div class="board">
+      <div class="card">
+        <h3>협진 케이스 <button class="btn btn-sm btn-primary" onclick="openCaseForm()">＋ 등록</button></h3>
+        <input id="caseSearch" class="field" placeholder="케이스 번호·증상·질환명 검색" oninput="renderCaseList()" />
+        <div class="filter-row" id="caseFilters"></div>
+        <div class="case-list" id="caseList"></div>
+      </div>
+      <div id="caseDetail">
+        <div class="card">
+          <div id="cdHead"></div>
+        </div>
+        <div class="detail-grid">
+          <div class="stack">
+            <div class="card">
+              <h3>🧬 증상 (표현형)</h3>
+              <div class="chips" id="cdPhenos"></div>
+              <div class="row" style="margin-top:10px">
+                <input id="phenoInput" class="field grow" list="termList" placeholder="증상 추가 (예: 각막 소용돌이 혼탁)" onkeydown="if(event.key==='Enter')addPheno()" />
+                <button class="btn btn-sm" onclick="addPheno()">추가</button>
+              </div>
+              <p class="note">표준 증상 용어로 입력하면 아래 질환 매칭과 유사 케이스 검색에 바로 반영됩니다.</p>
+            </div>
+            <div class="card">
+              <h3>🗺 진단 여정 <span class="note" style="margin:0" id="cdOdysseyNote"></span></h3>
+              <div id="cdJourney"></div>
+              <h4 style="margin-top:14px">❌ 이미 배제된 진단</h4>
+              <div id="cdExcluded"></div>
+              <h4 style="margin-top:14px">🧪 주요 검사 결과 · 가족력</h4>
+              <div id="cdTests"></div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <h3>🧩 감별진단 보드 <span class="note" style="margin:0">진료과별 가능성 판단과 근거를 한곳에 모읍니다</span></h3>
+              <div id="cdCands"></div>
+              <div class="row" style="margin-top:12px">
+                <input id="candName" class="field grow" list="dxList" placeholder="후보 진단 추가" />
+                <input id="candTest" class="field grow" placeholder="확인에 필요한 검사" onkeydown="if(event.key==='Enter')addCandidate()" />
+                <button class="btn btn-sm" onclick="addCandidate()">추가</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>🔎 증상 기반 희귀질환 매칭 <span class="badge">참고용</span></h3>
+              <div id="cdMatch"></div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="card">
+            <h3>💬 협진 토론</h3>
+            <div class="thread" id="cdThread"></div>
+            <div class="composer">
+              <div class="row">
+                <select id="postTag" class="field" style="width:auto">
+                  <option>의견</option><option>질문</option><option value="검사">검사 결과</option><option>결론</option>
+                </select>
+                <span class="note" style="margin:0">@이름 으로 특정 의료진을 부를 수 있습니다</span>
+              </div>
+              <textarea id="postText" class="field" placeholder="의견, 검사 결과, 질문을 남기세요" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))addPost()"></textarea>
+              <div class="row" style="justify-content:flex-end"><span class="note" style="margin:0">Ctrl+Enter 전송</span><button class="btn btn-primary" onclick="addPost()">등록</button></div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <h3>📨 이 케이스의 협진 요청</h3>
+              <div id="cdConsults"></div>
+            </div>
+            <div class="card">
+              <h3>✅ 할 일 (액션 아이템)</h3>
+              <div id="cdActions"></div>
+              <div class="row" style="margin-top:10px">
+                <input id="actText" class="field grow" placeholder="할 일 (예: GLA 유전자 검사 의뢰)" />
+                <select id="actOwner" class="field" style="width:auto"></select>
+                <input id="actDue" class="field" type="date" style="width:auto" />
+                <button class="btn btn-sm" onclick="addAction()">추가</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 3: 전문가 찾기 -->
+  <div id="tab-experts" class="tab-content">
+    <div class="card">
+      <h3>👩‍⚕️ 기관을 넘어 희귀질환 전문가 찾기</h3>
+      <div class="row">
+        <input id="expertSearch" class="field grow" placeholder="질환·증상·진료과 검색 (예: 폼페병, 각막, 신장)" oninput="renderExperts()" />
+        <select id="expertCase" class="field" style="width:auto" onchange="renderExperts()"></select>
+      </div>
+      <p class="note" id="expertNote"></p>
+    </div>
+    <div class="experts" id="expertList" style="margin-top:16px"></div>
+  </div>
+
+  <!-- 탭 4: 다학제 회의 -->
+  <div id="tab-mdt" class="tab-content">
+    <div class="card">
+      <h3>📅 다학제 회의 (MDT) <button class="btn btn-sm btn-primary" onclick="openMdtForm()">＋ 회의 만들기</button></h3>
+      <p class="note" style="margin-top:0">안건으로 올린 케이스의 증상, 감별진단 합의도, 남은 할 일을 회의 화면에서 바로 보고, 결론은 각 케이스 토론에 자동 기록됩니다.</p>
+      <div id="mdtList"></div>
+    </div>
+  </div>
+
+  <!-- 탭 5: 라이브러리 -->
+  <div id="tab-library" class="tab-content">
+    <div class="grid-4" id="libStats"></div>
+    <div class="card" style="margin-top:16px">
+      <h3>📚 확진 케이스 라이브러리 <span class="note" style="margin:0">확진까지의 핵심 단서가 다음 케이스의 매칭에 쓰입니다</span></h3>
+      <input id="libSearch" class="field" placeholder="증상·질환명 검색" oninput="renderLibrary()" />
+      <div class="lib" id="libList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- 탭 6: 열람 기록 -->
+  <div id="tab-audit" class="tab-content">
+    <div class="card">
+      <h3>🔐 케이스 열람·수정 기록 <span class="note" style="margin:0">누가 언제 어떤 케이스를 보고 바꿨는지 남깁니다</span></h3>
+      <div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="btn btn-sm btn-ghost" onclick="resetDemo()">↺ 시연 데이터 초기화</button></div>
+      <div class="table-wrap"><table class="data"><thead><tr><th>시각</th><th>의료진</th><th>구분</th><th>내용</th></tr></thead><tbody id="auditBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="footer">🏥 건양대 의료IT공학과 | RareLink | 하유진 · 이아연 · 심가원 — 모든 케이스는 교육용 가상 데이터입니다</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modalBox" role="dialog" aria-modal="true"></div>
+</div>
+<div class="toast" id="toast"></div>
+<datalist id="termList"></datalist>
+<datalist id="dxList"></datalist>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script>
+/* ============ Firebase 연결 ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyD8LnyjhUJkKZJijQ-DVte11kB4cYOEK1I",
+  authDomain: "seed-d97d6.firebaseapp.com",
+  databaseURL: "https://seed-d97d6-default-rtdb.firebaseio.com",
+  projectId: "seed-d97d6",
+  storageBucket: "seed-d97d6.firebasestorage.app",
+  messagingSenderId: "1088837535584",
+  appId: "1:1088837535584:web:8b59dd4c1e7e97d91c8005"
+};
+let fbDb = null, fbAuth = null, fbReady = false;
+try {
+  firebase.initializeApp(firebaseConfig);
+  fbDb = firebase.database();
+  fbAuth = firebase.auth();
+  fbReady = true;
+} catch (e) {
+  console.warn('Firebase 연결 실패 — 이 브라우저 안에서만 동작합니다.', e);
+}
+function setFbStatus(text, cls) {
+  ['fbStatusIndicator', 'fbStatusIndicatorLogin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = text; el.className = `fb-status ${cls}`; }
+  });
+}
+if (!fbReady) setFbStatus('🔴 로컬 시연 모드 (Firebase 미연결)', 'fail');
+else fbDb.ref('.info/connected').on('value', s => s.val() === true ? setFbStatus('🟢 실시간 동기화 중', 'ok') : setFbStatus('🟡 Firebase 재연결 중...', 'warn'));
+</script>
+<script>
+/* =====================================================================
+   데이터 — 모든 환자 케이스는 교육·시연용 가상 데이터입니다.
+   ===================================================================== */
+const H = 3600e3, D = 24 * H, T0 = Date.now();
+const YEAR = new Date().getFullYear();
+
+/* 로그인 계정 → 시연용 의료진 역할 */
+const ACCOUNTS = {
+  '하유진': {sid: '26615053', email: 'hayujin@vitalsign.app', dept: '소아청소년과 (유전·대사)', hospital: '건양대학교병원'},
+  '이아연': {sid: '26615038', email: 'leeayeon@vitalsign.app', dept: '신경과 (신경근육질환)', hospital: '건양대학교병원'},
+  '심가원': {sid: '26615031', email: 'simgawon@vitalsign.app', dept: '신장내과', hospital: '건양대학교병원'}
+};
+
+/* 전문가 디렉터리 — 로그인 계정 외 인물·기관은 가상입니다 */
+const EXPERTS = [
+  {name: '하유진', dept: '소아청소년과 (유전·대사)', hospital: '건양대학교병원', region: '대전', focus: ['리소좀 축적질환', '선천성 대사이상', '발달 지연', '파브리병', '고셔병', '결절성 경화증'], cases: 38, replyH: 9, rate: 96, status: 'on', color: '#7c3aed'},
+  {name: '이아연', dept: '신경과 (신경근육질환)', hospital: '건양대학교병원', region: '대전', focus: ['폼페병', '근이영양증', '척수성 근위축증', '말초 신경병증', '헌팅턴병', '윌슨병'], cases: 44, replyH: 11, rate: 94, status: 'on', color: '#2563eb'},
+  {name: '심가원', dept: '신장내과', hospital: '건양대학교병원', region: '대전', focus: ['파브리병', '비정형 용혈성 요독 증후군', '유전성 신질환', '아밀로이드증', '단백뇨'], cases: 31, replyH: 13, rate: 91, status: 'on', color: '#0d9488'},
+  {name: '김도현', dept: '심장내과 (심근병증)', hospital: '한빛대학교병원', region: '서울', focus: ['비대성 심근병증', '아밀로이드 심근병증', '파브리병', '마르판 증후군', '좌심실 비대'], cases: 57, replyH: 20, rate: 88, status: 'busy', color: '#dc2626',
+    demoReply: '심장 MRI에서 지연 조영 증강 분포(하외측벽 중간층 여부)를 보면 침윤성 원인 감별에 도움이 됩니다. 영상 공유해 주시면 판독 의견 드리겠습니다.'},
+  {name: '박서윤', dept: '류마티스내과', hospital: '해온대학교병원', region: '부산', focus: ['자가염증질환', '가족성 지중해열', '유전성 혈관부종', '혈관염', '반복 발열'], cases: 29, replyH: 15, rate: 90, status: 'on', color: '#db2777',
+    demoReply: '발작기와 비발작기 CRP·SAA를 함께 기록해 주세요. 자가염증질환이 의심되면 콜히친 치료 반응도 진단에 참고가 됩니다.'},
+  {name: '최민재', dept: '진단검사의학과 (유전체)', hospital: '한빛대학교병원', region: '서울', focus: ['NGS 패널', '엑솜 분석', '변이 해석', '유전 상담'], cases: 112, replyH: 26, rate: 97, status: 'on', color: '#059669',
+    demoReply: '검체 받으면 해당 유전자가 포함된 패널로 분석하겠습니다. 부모 검체가 있으면 의미 불명 변이(VUS) 해석에 큰 도움이 됩니다. 결과는 약 3~4주 예상합니다.'},
+  {name: '정하린', dept: '안과', hospital: '청람대학교병원', region: '대구', focus: ['각막 소용돌이 혼탁', '카이저-플라이셔 고리', '수정체 탈구', '유전성 망막질환'], cases: 23, replyH: 8, rate: 95, status: 'on', color: '#ea580c',
+    demoReply: '세극등 검사로 각막 소용돌이 혼탁과 카이저-플라이셔 고리 여부를 확인할 수 있습니다. 이번 주 목요일 오전 외래로 의뢰해 주세요.'},
+  {name: '오지훈', dept: '호흡기내과', hospital: '누리의료원', region: '광주', focus: ['신경근육질환 호흡부전', '야간 저환기', '폼페병', '반복 기흉'], cases: 19, replyH: 18, rate: 86, status: 'off', color: '#0284c7',
+    demoReply: '누운 자세와 앉은 자세 FVC를 함께 측정하고 야간 산소포화도 검사를 권합니다. 저환기가 확인되면 야간 비침습 환기를 검토하겠습니다.'},
+  {name: '한수아', dept: '소화기내과 (간)', hospital: '청람대학교병원', region: '대구', focus: ['윌슨병', '대사성 간질환', '간비대', '간효소 상승'], cases: 26, replyH: 12, rate: 93, status: 'on', color: '#ca8a04',
+    demoReply: '세룰로플라스민이 낮다면 24시간 소변 구리와 간 구리 정량이 진단에 중요합니다. 간생검 일정 조율 가능합니다.'},
+  {name: '윤태오', dept: '혈액종양내과', hospital: '해온대학교병원', region: '부산', focus: ['고셔병', '비정형 용혈성 요독 증후군', '희귀 빈혈', '혈소판 감소'], cases: 34, replyH: 22, rate: 89, status: 'busy', color: '#9333ea',
+    demoReply: '말초혈액 도말, 망상적혈구, LDH, 합토글로빈 결과를 공유해 주세요. 필요하면 골수검사 일정을 잡겠습니다.'},
+  {name: '서지안', dept: '피부과', hospital: '누리의료원', region: '광주', focus: ['혈관각화종', '신경피부증후군', '저색소반', '밀크커피반점'], cases: 21, replyH: 10, rate: 92, status: 'on', color: '#be185d',
+    demoReply: '피부 병변 사진을 먼저 공유해 주시면 판독하고, 필요하면 피부 생검 일정을 잡겠습니다.'}
+];
+
+/* 표준 증상 용어 (분류별) — 실제 서비스에서는 HPO 용어 체계와 연결 */
+const TERMS = {
+  '신경': ['사지 말단 작열통', '손 떨림(진전)', '구음장애', '경련', '발달 지연', '인지 저하', '무도증(불수의 운동)', '말초 신경병증', '우울·성격 변화'],
+  '근육': ['근위부 근력 약화', '운동 불내성', 'CK 상승', '동요성 보행', '종아리 가성비대', '가우어 징후', '근긴장 저하', '혀 섬유속성 연축'],
+  '호흡': ['기좌호흡(누우면 호흡곤란)', '주간 졸림·아침 두통', '반복 기흉'],
+  '심장': ['좌심실 비대', '부정맥', '대동맥 확장', '심장 횡문근종'],
+  '신장': ['단백뇨', '신기능 저하', '신장 혈관근지방종', '급성 신손상'],
+  '피부': ['혈관각화종', '저색소반', '안면 혈관섬유종', '밀크커피반점', '겨드랑이 주근깨', '신경섬유종', '반복 혈관부종(두드러기 없음)', '발한 감소', '쉽게 멍듦'],
+  '눈': ['각막 소용돌이 혼탁', '카이저-플라이셔 고리', '수정체 탈구', '홍채 결절(리쉬 결절)'],
+  '혈액': ['혈소판 감소', '빈혈', '용혈성 빈혈'],
+  '소화기·간': ['간비대', '비장비대', '간효소 상승', '복막염 양상 복통', '반복 복통·설사'],
+  '골격': ['큰 키·긴 사지', '거미손가락', '오목가슴', '골통·골위기', '손목터널증후군'],
+  '전신': ['열 불내성', '반복 발열(주기적)', '흉막염성 흉통', '단관절염', '후두 부종']
+};
+const CAT_COLOR = {'신경': '#7c3aed', '근육': '#2563eb', '호흡': '#0284c7', '심장': '#dc2626', '신장': '#d97706', '피부': '#db2777', '눈': '#ea580c', '혈액': '#b91c1c', '소화기·간': '#ca8a04', '골격': '#64748b', '전신': '#0d9488'};
+const TERM_CAT = {};
+Object.entries(TERMS).forEach(([c, list]) => list.forEach(t => { TERM_CAT[t] = c; }));
+
+/* 증상을 확인하는 방법 — 매칭에서 "확인이 필요한 증상" 안내에 사용 */
+const CHECK_HOW = {
+  '각막 소용돌이 혼탁': '안과 세극등 검사', '카이저-플라이셔 고리': '안과 세극등 검사', '수정체 탈구': '안과 세극등 검사', '홍채 결절(리쉬 결절)': '안과 세극등 검사',
+  '혈관각화종': '피부 진찰 (배꼽~무릎 사이)', '저색소반': '우드등 검사', '안면 혈관섬유종': '피부 진찰', '밀크커피반점': '피부 진찰 (개수·크기)',
+  '좌심실 비대': '심초음파', '대동맥 확장': '심초음파', '심장 횡문근종': '심초음파', '부정맥': '24시간 홀터 심전도',
+  '기좌호흡(누우면 호흡곤란)': '누운/앉은 자세 FVC 비교', 'CK 상승': '혈청 CK', '혀 섬유속성 연축': '신경학적 진찰', '가우어 징후': '신경학적 진찰', '무도증(불수의 운동)': '신경학적 진찰',
+  '비장비대': '복부 초음파', '간비대': '복부 초음파', '혈소판 감소': '일반혈액검사', '용혈성 빈혈': 'LDH·합토글로빈·망상적혈구', '간효소 상승': '간기능 검사',
+  '손목터널증후군': '병력 확인 · 신경전도 검사', '말초 신경병증': '신경전도 검사', '발한 감소': '병력 확인 · 발한 검사', '단백뇨': '소변 단백/크레아티닌 비',
+  '후두 부종': '발작 시 병력 확인', '반복 발열(주기적)': '발열 일지 (주기·지속 기간)', '경련': '뇌파 · 뇌 MRI', '신장 혈관근지방종': '신장 초음파/CT'
+};
+
+/* 희귀질환 지식베이스 (교육용 단순화) — core: 핵심 소견(가중치 2) */
+const KB = [
+  {id: 'fabry', name: '파브리병', en: 'Fabry disease', inherit: 'X연관', core: ['사지 말단 작열통', '발한 감소', '혈관각화종', '각막 소용돌이 혼탁'], other: ['단백뇨', '신기능 저하', '좌심실 비대', '반복 복통·설사', '열 불내성'], test: 'α-갈락토시다아제 A 효소 활성(남성) · GLA 유전자 · lyso-Gb3', depts: ['신장내과', '심장내과', '소아청소년과']},
+  {id: 'pompe', name: '폼페병 (후기 발병)', en: 'Late-onset Pompe disease', inherit: '상염색체 열성', core: ['근위부 근력 약화', '기좌호흡(누우면 호흡곤란)', 'CK 상승'], other: ['운동 불내성', '동요성 보행', '주간 졸림·아침 두통'], test: '건조혈반 GAA 효소 활성 → GAA 유전자', depts: ['신경과', '호흡기내과']},
+  {id: 'gaucher', name: '고셔병 1형', en: 'Gaucher disease type 1', inherit: '상염색체 열성', core: ['비장비대', '혈소판 감소'], other: ['간비대', '빈혈', '골통·골위기', '쉽게 멍듦'], test: 'β-글루코세레브로시다아제 효소 활성 · GBA1 유전자', depts: ['혈액종양내과', '소아청소년과']},
+  {id: 'wilson', name: '윌슨병', en: 'Wilson disease', inherit: '상염색체 열성', core: ['간효소 상승', '카이저-플라이셔 고리'], other: ['손 떨림(진전)', '구음장애', '우울·성격 변화', '용혈성 빈혈'], test: '세룰로플라스민 · 24시간 소변 구리 · 세극등 검사 · ATP7B 유전자', depts: ['소화기내과', '신경과', '안과']},
+  {id: 'dmd', name: '뒤센 근이영양증', en: 'Duchenne muscular dystrophy', inherit: 'X연관', core: ['가우어 징후', '종아리 가성비대', 'CK 상승'], other: ['근위부 근력 약화', '발달 지연'], test: 'DMD 유전자 (MLPA → 염기서열 분석)', depts: ['신경과', '소아청소년과']},
+  {id: 'lgmd', name: '지대형 근이영양증', en: 'Limb-girdle muscular dystrophy', inherit: '유전형 다양', core: ['근위부 근력 약화', 'CK 상승'], other: ['동요성 보행', '운동 불내성', '종아리 가성비대'], test: '근질환 NGS 패널 · 근생검 면역염색', depts: ['신경과']},
+  {id: 'sma', name: '척수성 근위축증', en: 'Spinal muscular atrophy', inherit: '상염색체 열성', core: ['근긴장 저하', '혀 섬유속성 연축', '근위부 근력 약화'], other: ['발달 지연'], test: 'SMN1 결실 (MLPA) · SMN2 복제 수', depts: ['신경과', '소아청소년과']},
+  {id: 'tsc', name: '결절성 경화증', en: 'Tuberous sclerosis complex', inherit: '상염색체 우성', core: ['경련', '저색소반', '안면 혈관섬유종'], other: ['심장 횡문근종', '신장 혈관근지방종', '발달 지연'], test: '우드등 검사 · 뇌 MRI · TSC1/TSC2 유전자', depts: ['소아청소년과', '피부과']},
+  {id: 'nf1', name: '신경섬유종증 1형', en: 'Neurofibromatosis type 1', inherit: '상염색체 우성', core: ['밀크커피반점', '겨드랑이 주근깨', '신경섬유종'], other: ['홍채 결절(리쉬 결절)', '발달 지연'], test: '임상 진단 기준 · NF1 유전자', depts: ['피부과', '소아청소년과']},
+  {id: 'marfan', name: '마르판 증후군', en: 'Marfan syndrome', inherit: '상염색체 우성', core: ['대동맥 확장', '수정체 탈구'], other: ['큰 키·긴 사지', '거미손가락', '오목가슴', '반복 기흉'], test: '개정 겐트 기준 · 심초음파 · FBN1 유전자', depts: ['심장내과', '안과']},
+  {id: 'fmf', name: '가족성 지중해열', en: 'Familial Mediterranean fever', inherit: '상염색체 열성', core: ['반복 발열(주기적)', '복막염 양상 복통'], other: ['흉막염성 흉통', '단관절염', '단백뇨'], test: 'MEFV 유전자 · 발작기/비발작기 CRP·SAA · 콜히친 반응', depts: ['류마티스내과']},
+  {id: 'hae', name: '유전성 혈관부종', en: 'Hereditary angioedema', inherit: '상염색체 우성', core: ['반복 혈관부종(두드러기 없음)', '후두 부종'], other: ['복막염 양상 복통'], test: 'C4 · C1 억제제 농도·기능', depts: ['류마티스내과']},
+  {id: 'attr', name: '트랜스티레틴 아밀로이드증', en: 'ATTR amyloidosis', inherit: '유전형/노인형', core: ['좌심실 비대', '손목터널증후군', '말초 신경병증'], other: ['부정맥', '반복 복통·설사', '단백뇨'], test: '피로인산 뼈스캔 · 혈청/소변 단백전기영동(경쇄 배제) · TTR 유전자', depts: ['심장내과', '신경과']},
+  {id: 'ahus', name: '비정형 용혈성 요독 증후군', en: 'Atypical HUS', inherit: '보체 유전자 변이 등', core: ['용혈성 빈혈', '혈소판 감소', '급성 신손상'], other: [], test: 'ADAMTS13 활성(TTP 배제) · 대변 STEC 검사 · 보체 유전자 패널', depts: ['신장내과', '혈액종양내과']},
+  {id: 'huntington', name: '헌팅턴병', en: 'Huntington disease', inherit: '상염색체 우성', core: ['무도증(불수의 운동)'], other: ['인지 저하', '우울·성격 변화', '구음장애'], test: 'HTT CAG 반복 수 (검사 전 유전 상담 필수)', depts: ['신경과']}
+];
+
+/* ---------- 시드 케이스 ---------- */
+const SEED_CASES = [
+  {
+    id: 'RC-2609-01', status: 'open', urgency: '일반', owner: '심가원', createdAt: T0 - 9 * D,
+    title: '10년 넘게 반복되는 손발 작열통과 새로 발견된 단백뇨', age: '30대', sex: '남', onsetYear: 2012,
+    summary: '청소년기부터 운동하거나 열이 나면 손발이 타는 듯이 아픔. 땀이 잘 나지 않아 여름마다 쉽게 지침. 2023년 검진에서 단백뇨, 2025년 심전도에서 좌심실 비대 발견(고혈압 없음).',
+    question: '신경병증성 통증·신장·심장이 함께 침범된 양상입니다. 리소좀 축적질환 가능성과 우선 검사 순서에 대한 의견 부탁드립니다.',
+    phenos: ['사지 말단 작열통', '발한 감소', '열 불내성', '단백뇨', '좌심실 비대', '반복 복통·설사'],
+    journey: [
+      ['2012', '지역 소아청소년과', '성장통 의심 — 진통제 처방'],
+      ['2016', '정형외과', '영상 검사 이상 없음 — 경과 관찰'],
+      ['2019', '류마티스내과', '섬유근육통 의심, 자가항체 음성'],
+      ['2023', '건강검진', '소변 단백 1+ 처음 발견'],
+      ['2025', '순환기내과', '심전도 좌심실 비대 — 고혈압 없음'],
+      ['2026.08', '신장내과 (건양대)', '단백뇨 지속 → RareLink 협진 등록']
+    ],
+    excluded: [['류마티스 관절염', 'RF·항CCP 항체 음성'], ['전신홍반루푸스', 'ANA 음성, 보체 정상'], ['당뇨병성 신증', '당화혈색소 5.3%']],
+    tests: [['소변 단백/크레아티닌 비', '820 mg/g'], ['eGFR', '78 mL/min/1.73㎡'], ['심초음파', '좌심실 벽 두께 13 mm, 박출률 정상'], ['가족력', '외삼촌이 40대에 원인 미상 신부전으로 투석']],
+    candidates: [
+      {key: 'c1', name: '파브리병', by: '심가원', ts: T0 - 8 * D, nextTest: 'α-Gal A 효소 활성 + GLA 유전자 검사', votes: {
+        '심가원': {level: 3, note: '모계 쪽 남성 신부전 가족력 + 발한 감소 + 단백뇨 조합이 전형적', ts: T0 - 8 * D},
+        '김도현': {level: 3, note: '고혈압 없는 좌심실 비대는 침윤성 원인부터 배제해야 함', ts: T0 - 6 * D},
+        '이아연': {level: 2, note: '통증 양상은 소섬유 신경병증에 부합. 원인 질환으로 파브리 가능성 있음', ts: T0 - 5 * D}}},
+      {key: 'c2', name: '비대성 심근병증', by: '김도현', ts: T0 - 6 * D, nextTest: '심장 MRI · 심근병증 유전자 패널', votes: {
+        '김도현': {level: 2, note: '심장 소견만 보면 감별 필요', ts: T0 - 6 * D},
+        '심가원': {level: 1, note: '신장·신경 증상까지 한 번에 설명하지 못함', ts: T0 - 5 * D}}},
+      {key: 'c3', name: '특발성 소섬유 신경병증', by: '이아연', ts: T0 - 5 * D, nextTest: '피부 생검 (표피내 신경섬유 밀도)', votes: {
+        '이아연': {level: 2, note: '증상 자체는 소섬유 신경병증', ts: T0 - 5 * D},
+        '하유진': {level: 1, note: '단독 진단으로는 다장기 침범 설명 불가', ts: T0 - 3 * D}}}
+    ],
+    thread: [
+      {by: '심가원', tag: '질문', text: '10년 넘게 진단이 안 된 환자입니다. 통증, 단백뇨, 좌심실 비대가 한 질환으로 설명되는지 각 과 의견 부탁드립니다.', ts: T0 - 9 * D},
+      {by: '김도현', tag: '의견', text: '심초음파상 대칭성 비대이고 고혈압이 없습니다. 파브리병 같은 침윤성 질환을 먼저 배제하는 게 좋겠습니다.', ts: T0 - 6 * D},
+      {by: '이아연', tag: '의견', text: '열이나 운동 때 악화되는 말단 작열통은 소섬유 신경병증 양상입니다. 원인으로 파브리병이 가장 먼저 떠오릅니다.', ts: T0 - 5 * D},
+      {by: '하유진', tag: '의견', text: '청소년기 발병 + 외삼촌 신부전이면 X연관 유전을 의심할 만합니다. 남성은 효소 활성 검사로 선별이 가능합니다. @정하린 교수님께 각막 소견 확인 부탁드리면 좋겠습니다.', ts: T0 - 3 * D}
+    ],
+    actions: [{id: 'a1', text: 'α-Gal A 효소 활성 검사 의뢰', owner: '심가원', due: T0 + 2 * D}, {id: 'a2', text: '세극등 검사로 각막 소용돌이 혼탁 확인', owner: '정하린', due: T0 + 4 * D}]
+  },
+  {
+    id: 'RC-2609-02', status: 'mdt', urgency: '일반', owner: '이아연', createdAt: T0 - 12 * D,
+    title: '서서히 진행하는 근위부 근력 약화와 누우면 심해지는 호흡곤란', age: '40대', sex: '여', onsetYear: 2020,
+    summary: '6년 전부터 계단 오르기·쪼그려 앉았다 일어나기가 힘들어짐. 최근 1년간 누우면 숨이 차서 베개를 여러 개 받치고 잠. 아침 두통과 낮 졸림 동반.',
+    question: '스테로이드에 반응하지 않은 근병증입니다. 후기 발병 폼페병 가능성과 호흡 평가·효소 검사 우선순위에 대해 의견 부탁드립니다.',
+    phenos: ['근위부 근력 약화', '운동 불내성', '기좌호흡(누우면 호흡곤란)', 'CK 상승', '주간 졸림·아침 두통', '동요성 보행'],
+    journey: [
+      ['2020', '정형외과', '요추 협착 의심 — 물리치료'],
+      ['2022', '류마티스내과', '다발근염 의심 — 스테로이드 3개월, 호전 없음'],
+      ['2025', '호흡기내과', '누운 자세 FVC가 앉은 자세보다 25% 감소'],
+      ['2026.08', '신경과 (건양대)', '근전도 근병증 소견 → 협진 등록']
+    ],
+    excluded: [['다발근염', '스테로이드 무반응, 근생검에서 염증 세포 침윤 없음'], ['중증근무력증', 'AChR 항체 음성, 반복신경자극검사 정상']],
+    tests: [['CK', '820 U/L (정상 상한 4배)'], ['폐기능', '앉은 자세 FVC 72% → 누운 자세 47%'], ['근생검', '산성 인산분해효소 양성 공포를 동반한 근병증']],
+    candidates: [
+      {key: 'c1', name: '폼페병 (후기 발병)', by: '이아연', ts: T0 - 11 * D, nextTest: '건조혈반 GAA 효소 활성 → GAA 유전자', votes: {
+        '이아연': {level: 3, note: '공포성 근병증 + 사지에 비해 두드러진 횡격막 약화', ts: T0 - 11 * D},
+        '오지훈': {level: 3, note: '자세에 따른 FVC 25% 감소는 횡격막 약화를 강하게 시사', ts: T0 - 9 * D},
+        '하유진': {level: 2, note: '효소 검사가 간단하니 먼저 시행 권장', ts: T0 - 8 * D}}},
+      {key: 'c2', name: '지대형 근이영양증', by: '최민재', ts: T0 - 8 * D, nextTest: '근질환 NGS 패널 (GAA 포함)', votes: {
+        '최민재': {level: 2, note: 'GAA를 포함한 패널로 두 가능성을 한 번에 확인 가능', ts: T0 - 8 * D},
+        '이아연': {level: 2, note: '호흡근 침범 정도가 설명하기 어려움', ts: T0 - 7 * D}}}
+    ],
+    thread: [
+      {by: '이아연', tag: '질문', text: '스테로이드에 반응 없던 근병증 환자입니다. 누운 자세 호흡곤란이 두드러집니다. 호흡기내과, 유전체 쪽 의견 부탁드립니다.', ts: T0 - 12 * D},
+      {by: '오지훈', tag: '검사', text: '누운 자세 FVC 47%로 야간 저환기 위험이 있습니다. 야간 산소포화도 검사 먼저 권합니다.', ts: T0 - 9 * D},
+      {by: '최민재', tag: '의견', text: '효소 검사와 GAA 포함 패널을 같이 보내면 재채혈 없이 진행할 수 있습니다.', ts: T0 - 8 * D}
+    ],
+    actions: [{id: 'a1', text: '건조혈반 GAA 효소 검사 발송', owner: '이아연', due: T0 - 1 * D, done: true, doneBy: '이아연'}, {id: 'a2', text: '야간 산소포화도 검사', owner: '오지훈', due: T0 + 3 * D}]
+  },
+  {
+    id: 'RC-2609-03', status: 'open', urgency: '긴급', owner: '하유진', createdAt: T0 - 2 * D,
+    title: '지속되는 간효소 상승과 손떨림, 최근 우울감·발음 변화', age: '10대 후반', sex: '여', onsetYear: 2024,
+    summary: '2년 전부터 간효소가 반복적으로 높게 나와 지방간으로 관리. 올해 손떨림과 발음이 어눌해졌고 우울감으로 정신건강의학과 치료 중.',
+    question: '간 + 신경 + 정신 증상이 겹칩니다. 윌슨병 확진을 위한 검사 조합과, 신경 증상이 있을 때 치료 시작 시점에 대한 의견을 급히 구합니다.',
+    phenos: ['간효소 상승', '손 떨림(진전)', '우울·성격 변화', '구음장애'],
+    journey: [
+      ['2024', '소화기내과 (지역)', '지방간 의심 — 체중 감량 권고'],
+      ['2025', '정신건강의학과', '우울증 진단 — 항우울제 시작'],
+      ['2026.07', '신경과 (지역)', '본태성 진전 의심'],
+      ['2026.09', '소아청소년과 (건양대)', '간효소 지속 상승 → 협진 등록']
+    ],
+    excluded: [['바이러스 간염', 'HBsAg·anti-HCV 음성'], ['자가면역 간염', '항핵항체·항평활근항체 음성']],
+    tests: [['ALT / AST', '142 / 96 U/L'], ['세룰로플라스민', '12 mg/dL (저하)'], ['24시간 소변 구리', '결과 대기']],
+    candidates: [
+      {key: 'c1', name: '윌슨병', by: '하유진', ts: T0 - 2 * D, nextTest: '세극등 검사(K-F 고리) · 24시간 소변 구리 · ATP7B 유전자', votes: {
+        '하유진': {level: 3, note: '세룰로플라스민 저하 + 간·신경·정신 증상 동반', ts: T0 - 2 * D}}},
+      {key: 'c2', name: '약물 유발 간손상', by: '하유진', ts: T0 - 2 * D, nextTest: '복용 약물 확인 · 중단 후 추적', votes: {
+        '하유진': {level: 1, note: '간효소 상승이 항우울제 시작 전부터 있었음', ts: T0 - 2 * D}}}
+    ],
+    thread: [
+      {by: '하유진', tag: '질문', text: '세룰로플라스민이 낮습니다. 신경 증상이 이미 있어 빠른 판단이 필요합니다. @이아연 교수님 신경학적 평가 부탁드립니다.', ts: T0 - 2 * D}
+    ],
+    actions: [{id: 'a1', text: '24시간 소변 구리 결과 확인', owner: '하유진', due: T0 + 1 * D}]
+  },
+  {
+    id: 'RC-2609-04', status: 'open', urgency: '일반', owner: '박서윤', createdAt: T0 - 5 * D,
+    title: '4년간 반복되는 고열과 극심한 복통 발작 (2~3일 뒤 저절로 사라짐)', age: '20대', sex: '남', onsetYear: 2022,
+    summary: '한 달에 한 번꼴로 39도 발열과 심한 복통이 2~3일 지속 후 저절로 좋아짐. 발작 사이에는 증상 없음. 최근 검진에서 단백뇨 발견.',
+    question: '자가염증질환 가능성을 보고 있습니다. 새로 생긴 단백뇨가 이차성 아밀로이드증 때문인지 신장내과 평가가 필요합니다.',
+    phenos: ['반복 발열(주기적)', '복막염 양상 복통', '흉막염성 흉통', '단관절염', '단백뇨'],
+    journey: [
+      ['2022', '응급실', '급성 충수염 의심 → 수술, 조직 소견 정상'],
+      ['2023', '소화기내과', '과민성 대장 증후군 진단'],
+      ['2024', '감염내과', '불명열 정밀검사 — 감염 원인 없음'],
+      ['2026.08', '류마티스내과 (해온대)', '발작기 CRP 180, 발작 사이 정상 → 협진 등록']
+    ],
+    excluded: [['감염성 원인', '발작 때마다 시행한 혈액배양 음성'], ['염증성 장질환', '대장내시경·소장 영상 정상']],
+    tests: [['CRP (발작기 / 비발작기)', '180 / 3 mg/L'], ['소변 단백/크레아티닌 비', '640 mg/g'], ['가족력', '없음']],
+    candidates: [
+      {key: 'c1', name: '가족성 지중해열', by: '박서윤', ts: T0 - 5 * D, nextTest: 'MEFV 유전자 · 콜히친 치료 반응 확인', votes: {
+        '박서윤': {level: 3, note: '2~3일 지속 발열 + 복막염 양상 복통 + 흉막염 + 발작 사이 정상', ts: T0 - 5 * D}}},
+      {key: 'c2', name: 'TNF 수용체 연관 주기열 증후군 (TRAPS)', by: '박서윤', ts: T0 - 5 * D, nextTest: '자가염증질환 유전자 패널', votes: {
+        '박서윤': {level: 1, note: '발작 기간이 짧아 가능성 낮음', ts: T0 - 5 * D}}}
+    ],
+    thread: [
+      {by: '박서윤', tag: '질문', text: '콜히친 시작 전에 단백뇨 원인을 정리하고 싶습니다. @심가원 교수님 신생검 필요성에 대해 의견 부탁드립니다.', ts: T0 - 5 * D}
+    ],
+    actions: []
+  },
+  /* ---------- 확진 케이스 (라이브러리) ---------- */
+  {
+    id: 'RC-2607-11', status: 'done', urgency: '일반', owner: '하유진', createdAt: T0 - 70 * D, closedAt: T0 - 48 * D,
+    title: '영아기부터 시작된 경련과 피부의 하얀 반점', age: '10세 미만', sex: '남', onsetYear: 2020,
+    summary: '생후 8개월 영아 연축으로 항경련제 치료. 발달 지연 동반. 피부의 하얀 반점은 단순 색소 이상으로 여겨짐.',
+    question: '경련·발달 지연의 원인 질환 평가.', phenos: ['경련', '저색소반', '발달 지연', '심장 횡문근종'],
+    journey: [['2020', '소아신경과 (지역)', '영아 연축 — 항경련제'], ['2023', '피부과 (지역)', '저색소반 — 경과 관찰'], ['2026.07', '소아청소년과 (건양대)', '협진 등록']],
+    excluded: [], tests: [], candidates: [], thread: [], actions: [],
+    finalDx: '결절성 경화증 (TSC2 변이)', clue: '우드등 검사에서 저색소반 4개 확인 + 신생아기 심초음파에 남아 있던 횡문근종 기록', lesson: '영아 연축과 저색소반이 함께 있으면 우드등 검사와 심초음파 기록 확인을 먼저', depts: ['소아청소년과', '피부과', '심장내과', '진단검사의학과']
+  },
+  {
+    id: 'RC-2605-07', status: 'done', urgency: '일반', owner: '김도현', createdAt: T0 - 130 * D, closedAt: T0 - 104 * D,
+    title: '양쪽 손목터널증후군 수술 이력과 원인 미상 심근 비대', age: '50대', sex: '남', onsetYear: 2019,
+    summary: '5년 전 양쪽 손목터널증후군 수술. 이후 발 저림, 기립성 어지럼, 운동 시 호흡곤란. 심초음파상 심근 비대가 있으나 심전도는 저전압.',
+    question: '심근 비대와 신경병증의 공통 원인 평가.', phenos: ['좌심실 비대', '손목터널증후군', '말초 신경병증', '부정맥'],
+    journey: [['2019', '정형외과', '양측 손목터널증후군 수술'], ['2023', '신경과', '말초 신경병증 — 원인 미상'], ['2026.05', '심장내과 (한빛대)', '협진 등록']],
+    excluded: [], tests: [], candidates: [], thread: [], actions: [],
+    finalDx: '트랜스티레틴 아밀로이드증 (ATTR)', clue: '두꺼운 심근과 저전압 심전도의 불일치 + 양측 손목터널증후군 수술 이력 → 피로인산 뼈스캔 양성', lesson: '양측 손목터널증후군 수술 이력은 심근 비대 환자에서 중요한 단서', depts: ['심장내과', '신경과', '핵의학과']
+  },
+  {
+    id: 'RC-2603-02', status: 'done', urgency: '일반', owner: '박서윤', createdAt: T0 - 190 * D, closedAt: T0 - 176 * D,
+    title: '두드러기 없이 반복되는 얼굴·손 부종과 복통 발작', age: '30대', sex: '여', onsetYear: 2011,
+    summary: '10대부터 외상 뒤 얼굴·손이 크게 붓고 2~3일 뒤 가라앉음. 항히스타민·스테로이드에 반응 없음. 복통 발작으로 응급실 반복 방문.',
+    question: '항히스타민 무반응 반복 부종의 원인.', phenos: ['반복 혈관부종(두드러기 없음)', '복막염 양상 복통', '후두 부종'],
+    journey: [['2011', '피부과', '만성 두드러기 — 항히스타민'], ['2018', '응급실', '후두 부종으로 기관삽관'], ['2026.03', '류마티스내과 (해온대)', '협진 등록']],
+    excluded: [], tests: [], candidates: [], thread: [], actions: [],
+    finalDx: '유전성 혈관부종 1형', clue: 'C4 저하와 C1 억제제 농도 저하 — 항히스타민 무반응이 핵심 힌트', lesson: '두드러기 없는 반복 부종에 항히스타민이 듣지 않으면 C4부터 검사', depts: ['류마티스내과', '알레르기내과', '응급의학과']
+  }
+];
+
+/* ---------- 시드 협진 요청 ---------- */
+const SEED_CONSULTS = [
+  {id: 'q1', caseId: 'RC-2609-01', from: '심가원', to: '정하린', urgency: '일반', ts: T0 - 20 * H, status: 'pending', question: '각막 소용돌이 혼탁 확인을 위한 세극등 검사 가능 여부 문의드립니다.'},
+  {id: 'q2', caseId: 'RC-2609-01', from: '심가원', to: '하유진', urgency: '일반', ts: T0 - 30 * H, status: 'pending', question: '소아기 발병 이력을 고려할 때 리소좀 축적질환 선별 검사 조합에 대한 의견 부탁드립니다.'},
+  {id: 'q3', caseId: 'RC-2609-03', from: '하유진', to: '이아연', urgency: '긴급', ts: T0 - 6 * H, status: 'pending', question: '진전과 구음장애의 신경학적 평가, 윌슨병 신경형 가능성 판단 부탁드립니다.'},
+  {id: 'q4', caseId: 'RC-2609-04', from: '박서윤', to: '심가원', urgency: '일반', ts: T0 - 50 * H, status: 'pending', question: '새로 생긴 단백뇨가 이차성 아밀로이드증 때문인지, 신생검이 필요한지 의견 부탁드립니다.'},
+  {id: 'q5', caseId: 'RC-2609-02', from: '이아연', to: '오지훈', urgency: '일반', ts: T0 - 10 * D, status: 'replied', question: '누운 자세 호흡곤란에 대한 호흡근 평가 부탁드립니다.', reply: '누운 자세 FVC 47%로 야간 저환기 위험이 있습니다. 야간 산소포화도 검사 후 비침습 환기 여부를 판단하겠습니다.', replyTs: T0 - 9 * D},
+  {id: 'q6', caseId: 'RC-2609-03', from: '하유진', to: '정하린', urgency: '긴급', ts: T0 - 5 * H, status: 'pending', question: '카이저-플라이셔 고리 확인을 위한 세극등 검사 요청드립니다.'}
+];
+
+/* ---------- 시드 다학제 회의 ---------- */
+function nextAt(daysAhead, hh, mm) { const d = new Date(T0 + daysAhead * D); d.setHours(hh, mm, 0, 0); return d.getTime(); }
+const SEED_MDT = [
+  {id: 'm1', title: '희귀질환 다학제 컨퍼런스 (정기)', when: nextAt(2, 17, 30), mode: '화상 (기관 간)', caseIds: ['RC-2609-01', 'RC-2609-02'], attendees: ['심가원', '이아연', '하유진', '김도현', '오지훈', '최민재'], status: 'planned', createdBy: '이아연'},
+  {id: 'm0', title: '결절성 경화증 의심 증례 최종 검토', when: T0 - 49 * D, mode: '대면', caseIds: ['RC-2607-11'], attendees: ['하유진', '서지안', '김도현', '최민재'], status: 'done', createdBy: '하유진', conclusions: {'RC-2607-11': 'TSC2 병적 변이 확인. 결절성 경화증 확진 — 신장 초음파 정기 추적과 가족 유전 상담 진행.'}}
+];
+</script>
+<script>
+/* =====================================================================
+   상태 · 공용 저장소
+   Firebase rareCollab/ 아래 트리를 통째로 받아 시드 데이터 위에 덮어씁니다.
+     cases/{id}            새로 등록된 케이스
+     status/{caseId}       상태·최종 진단
+     phenos/{caseId}/{id}  추가된 증상
+     cands/{caseId}/{id}   추가된 후보 진단
+     votes/{caseId}/{후보}/{의료진}  가능성 판단과 근거
+     thread/{caseId}/{id}  협진 토론
+     actions/{caseId}/{id}, actionState/{caseId}/{id}  할 일
+     consults/{id}         협진 요청·회신
+     mdt/{id}              다학제 회의
+   ===================================================================== */
+const ROOT = 'rareCollab', AUDIT = 'rareCollabAudit', LOCAL_KEY = 'rarelink_local';
+const LV = {3: '높음', 2: '중간', 1: '낮음', 0: '배제'};
+const URG_H = {'긴급': 24, '일반': 72};
+const STATUS_LABEL = {open: '진행 중', mdt: '회의 예정', done: '확진'};
+const STATUS_CLS = {open: 'b-open', mdt: 'b-mdt', done: 'b-done'};
+
+let me = {name: '', dept: '', hospital: ''};
+let remote = {}, auditLog = [];
+let booted = false, rootAttached = false, auditAttached = false;
+let selectedCaseId = 'RC-2609-01', caseFilter = 'active', currentTab = 'home';
+let formPhenos = [];
+
+/* ---------- 유틸 ---------- */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c])); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function p2(n) { return String(n).padStart(2, '0'); }
+function fmtDate(ts) { const d = new Date(ts); return `${d.getFullYear()}.${p2(d.getMonth() + 1)}.${p2(d.getDate())}`; }
+function fmtDT(ts) { const d = new Date(ts); return `${fmtDate(ts)} ${d.toLocaleTimeString('ko-KR', {hour: 'numeric', minute: '2-digit'})}`; }
+function ago(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return '방금';
+  if (m < 60) return `${m}분 전`;
+  if (m < 1440) return `${Math.floor(m / 60)}시간 전`;
+  return `${Math.floor(m / 1440)}일 전`;
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function R(path) { return path.split('/').reduce((o, k) => (o == null ? undefined : o[k]), remote); }
+function entries(obj) { return obj ? Object.entries(obj).filter(([, v]) => v).map(([id, v]) => ({id, ...v})) : []; }
+function setIn(obj, path, val) {
+  const ks = path.split('/'); let o = obj;
+  ks.slice(0, -1).forEach(k => { if (typeof o[k] !== 'object' || o[k] === null) o[k] = {}; o = o[k]; });
+  if (val === null) delete o[ks[ks.length - 1]]; else o[ks[ks.length - 1]] = val;
+}
+function saveLocal() { if (!fbReady) try { localStorage.setItem(LOCAL_KEY, JSON.stringify(remote)); } catch (e) {} }
+
+/* 공용 저장소에 쓰기 — 화면에 먼저 반영하고 Firebase로 전송 */
+function put(path, val) {
+  setIn(remote, path, JSON.parse(JSON.stringify(val)));
+  saveLocal();
+  if (fbReady && fbDb) fbDb.ref(`${ROOT}/${path}`).set(val).catch(e => { console.warn('저장 실패', e); toast('⚠️ 서버 저장 실패 — 이 화면에만 반영되었습니다'); });
+  renderAll();
+}
+function log(kind, text) {
+  const entry = {ts: Date.now(), user: me.name, kind, text};
+  if (fbReady && fbDb) fbDb.ref(AUDIT).push(entry).catch(() => {});
+  else { auditLog.push(entry); renderAudit(); }
+}
+
+/* ---------- 인물 ---------- */
+function person(name) { return EXPERTS.find(e => e.name === name) || {name, dept: '', hospital: '', color: '#64748b', focus: []}; }
+function deptShort(name) { return (person(name).dept || '').split(' (')[0]; }
+function avatar(name) { const p = person(name); return `<div class="avatar" style="background:${p.color}" aria-hidden="true">${esc(name.slice(-2))}</div>`; }
+function isAccount(name) { return !!ACCOUNTS[name]; }
+
+/* ---------- 병합된 데이터 ---------- */
+function baseCases() {
+  const user = entries(R('cases')).filter(c => !SEED_CASES.some(s => s.id === c.id));
+  return [...SEED_CASES, ...user];
+}
+function allConsults() {
+  const rc = R('consults') || {};
+  const seeds = SEED_CONSULTS.map(q => ({...q, ...(rc[q.id] || {})}));
+  const extra = entries(rc).filter(q => !SEED_CONSULTS.some(s => s.id === q.id));
+  return [...seeds, ...extra].sort((a, b) => b.ts - a.ts);
+}
+function allMdts() {
+  const rm = R('mdt') || {};
+  const seeds = SEED_MDT.map(m => ({...m, ...(rm[m.id] || {})}));
+  const extra = entries(rm).filter(m => !SEED_MDT.some(s => s.id === m.id));
+  return [...seeds, ...extra];
+}
+function mergeCase(c) {
+  const st = R(`status/${c.id}`) || {};
+  const phenos = (c.phenos || []).map(t => ({t, by: c.owner, seed: true}));
+  entries(R(`phenos/${c.id}`)).sort((a, b) => a.ts - b.ts).forEach(p => { if (!phenos.some(x => x.t === p.t)) phenos.push({t: p.t, by: p.by, id: p.id, ts: p.ts}); });
+  const cands = [...(c.candidates || []), ...entries(R(`cands/${c.id}`)).map(x => ({key: x.id, name: x.name, by: x.by, ts: x.ts, nextTest: x.nextTest, votes: {}}))].map(cd => {
+    const votes = {...(cd.votes || {})};
+    Object.entries(R(`votes/${c.id}/${cd.key}`) || {}).forEach(([n, v]) => { if (v && v.level >= 0) votes[n] = v; else delete votes[n]; });
+    return {...cd, votes};
+  });
+  const thread = [...(c.thread || []).map((p, i) => ({...p, id: 's' + i})), ...entries(R(`thread/${c.id}`))].sort((a, b) => a.ts - b.ts);
+  const actions = [...(c.actions || []), ...entries(R(`actions/${c.id}`))].map(a => ({...a, ...(R(`actionState/${c.id}/${a.id}`) || {})}));
+  const consults = allConsults().filter(q => q.caseId === c.id);
+  const members = new Set([c.owner]);
+  thread.forEach(p => members.add(p.by));
+  cands.forEach(cd => Object.keys(cd.votes).forEach(n => members.add(n)));
+  consults.forEach(q => { members.add(q.from); members.add(q.to); });
+  actions.forEach(a => members.add(a.owner));
+  return {...c, status: st.status || c.status, finalDx: st.finalDx || c.finalDx, clue: st.clue || c.clue, lesson: st.lesson || c.lesson,
+    closedAt: st.closedAt || c.closedAt, depts: st.depts || c.depts, journey: c.journey || [], excluded: c.excluded || [], tests: c.tests || [],
+    phenos, cands, thread, actions, consults, members: [...members].filter(Boolean)};
+}
+function allCases() { return baseCases().map(mergeCase); }
+function getCase(id) { const b = baseCases().find(c => c.id === id); return b ? mergeCase(b) : null; }
+
+/* ---------- 점수 계산 ---------- */
+function candScore(cd) {
+  const lv = Object.values(cd.votes).map(v => v.level);
+  if (!lv.length) return {pct: null, n: 0, agree: null};
+  const pct = Math.round(lv.reduce((a, b) => a + b, 0) / lv.length / 3 * 100);
+  const spread = Math.max(...lv) - Math.min(...lv);
+  return {pct, n: lv.length, agree: lv.length < 2 ? null : spread === 0 ? 'ok' : spread === 1 ? 'mid' : 'split'};
+}
+function sortedCands(c) { return c.cands.map(cd => ({...cd, sc: candScore(cd)})).sort((a, b) => (b.sc.pct ?? -1) - (a.sc.pct ?? -1) || b.sc.n - a.sc.n); }
+function pctColor(p) { return p == null ? 'var(--muted)' : p >= 67 ? 'var(--purple)' : p >= 40 ? 'var(--blue)' : 'var(--muted)'; }
+function agreeTag(a) { return a === 'ok' ? '<span class="agree ok">의견 일치</span>' : a === 'mid' ? '<span class="agree mid">대체로 일치</span>' : a === 'split' ? '<span class="agree split">의견 갈림 · 토론 필요</span>' : ''; }
+
+/* 증상 겹침 기반 질환 매칭 — 핵심 소견 가중치 2, 나머지 1 */
+function matchDiseases(terms) {
+  const set = new Set(terms), known = terms.filter(t => TERM_CAT[t]);
+  return KB.map(d => {
+    const feats = [...d.core.map(t => [t, 2]), ...d.other.map(t => [t, 1])];
+    const total = feats.reduce((a, [, w]) => a + w, 0);
+    const hit = feats.filter(([t]) => set.has(t));
+    const recall = hit.reduce((a, [, w]) => a + w, 0) / total;
+    const precision = known.length ? hit.length / known.length : 0;
+    return {d, score: Math.round(100 * (0.65 * recall + 0.35 * precision)), hit: hit.map(([t]) => t), missingCore: d.core.filter(t => !set.has(t))};
+  }).filter(m => m.hit.length).sort((a, b) => b.score - a.score).slice(0, 5);
+}
+function similarCases(c) {
+  const set = new Set(c.phenos.map(p => p.t));
+  return allCases().filter(x => x.status === 'done' && x.id !== c.id).map(x => {
+    const xs = x.phenos.map(p => p.t), common = xs.filter(t => set.has(t));
+    return {x, common, j: common.length / new Set([...set, ...xs]).size};
+  }).filter(s => s.common.length).sort((a, b) => b.j - a.j).slice(0, 3);
+}
+function odysseyYears(c) { return (c.status === 'done' && c.closedAt ? new Date(c.closedAt).getFullYear() : YEAR) - c.onsetYear; }
+function slaInfo(q) {
+  if (q.status === 'replied') return {text: `회신 완료 · ${ago(q.replyTs)}`, over: false};
+  const left = q.ts + URG_H[q.urgency] * H - Date.now(), h = Math.ceil(Math.abs(left) / H);
+  return left >= 0 ? {text: `회신 기한까지 ${h}시간`, over: false} : {text: `회신 기한 ${h}시간 초과`, over: true};
+}
+</script>
+<script>
+/* =====================================================================
+   화면 렌더링
+   ===================================================================== */
+function renderAll() {
+  if (!booted) return;
+  renderBadge();
+  renderHome();
+  renderCaseList();
+  renderCaseDetail();
+  renderExperts();
+  renderMdt();
+  renderLibrary();
+}
+
+function goTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.toggle('active', t.id === 'tab-' + tab));
+  window.scrollTo({top: 0});
+}
+function selectCase(id) {
+  selectedCaseId = id;
+  const c = getCase(id);
+  if (c) log('열람', `${id} 케이스 열람`);
+  goTab('board');
+  renderAll();
+}
+
+function renderBadge() {
+  const mine = allConsults().filter(q => q.to === me.name && q.status === 'pending');
+  const over = mine.filter(q => slaInfo(q).over).length;
+  const b = document.getElementById('inboxBadge');
+  b.textContent = `📨 받은 협진 요청 ${mine.length}건${over ? ` · 기한 초과 ${over}` : ''}`;
+  b.classList.toggle('zero', !mine.length);
+}
+
+/* ---------- 협진 요청 카드 ---------- */
+function consultCard(q, mode) {
+  const c = getCase(q.caseId), s = slaInfo(q);
+  const other = mode === 'in' ? q.from : q.to;
+  const dir = mode === 'in' ? '보낸 의료진' : mode === 'out' ? '받는 의료진' : `${esc(q.from)} →`;
+  const cls = q.status === 'replied' ? 'replied' : q.urgency === '긴급' ? 'urgent' : '';
+  const btns = [];
+  if (mode === 'in' && q.status === 'pending') btns.push(`<button class="btn btn-sm btn-primary" onclick="openReply('${q.id}')">회신하기</button>`);
+  if (q.status === 'pending' && q.from === me.name && !isAccount(q.to) && person(q.to).demoReply) btns.push(`<button class="btn btn-sm btn-ghost" onclick="demoReply('${q.id}')">🎬 시연: 회신 도착</button>`);
+  if (mode !== 'case') btns.push(`<button class="btn btn-sm" onclick="selectCase('${q.caseId}')">케이스 열기</button>`);
+  return `<div class="consult ${cls}">
+    <div class="consult-top"><span>${q.urgency === '긴급' ? '<span class="badge b-urgent">긴급</span> ' : ''}${dir} <b style="color:var(--text)">${esc(other)}</b> · ${esc(deptShort(other))} · ${esc(person(other).hospital || '')}</span><span class="sla ${s.over ? 'over' : ''}">${s.text}</span></div>
+    ${mode !== 'case' && c ? `<div class="consult-q" style="margin-bottom:0"><b>${esc(c.id)}</b> ${esc(c.title)}</div>` : ''}
+    <div class="consult-q">❓ ${esc(q.question)}</div>
+    ${q.reply ? `<div class="consult-reply">💬 <b>${esc(q.to)}</b> 회신: ${esc(q.reply)}</div>` : ''}
+    <div class="consult-top" style="margin-top:4px"><span>요청 ${esc(fmtDT(q.ts))}</span></div>
+    ${btns.length ? `<div class="consult-actions">${btns.join('')}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- 탭 1: 내 협진 ---------- */
+function renderHome() {
+  const cons = allConsults(), cases = allCases();
+  const inbox = cons.filter(q => q.to === me.name).sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || b.ts - a.ts);
+  const outbox = cons.filter(q => q.from === me.name);
+  const pendingIn = inbox.filter(q => q.status === 'pending');
+  const myCases = cases.filter(c => c.status !== 'done' && c.members.includes(me.name));
+  const week = allMdts().filter(m => m.status === 'planned' && m.attendees.includes(me.name) && m.when - Date.now() < 7 * D);
+  const overIn = pendingIn.filter(q => slaInfo(q).over).length;
+  document.getElementById('homeStats').innerHTML = [
+    ['회신 대기 중인 요청', pendingIn.length, overIn ? `<span style="color:var(--red);font-weight:800">기한 초과 ${overIn}건</span>` : '모두 기한 안', pendingIn.length ? 'var(--red)' : 'var(--text)'],
+    ['내가 보낸 요청 (답변 대기)', outbox.filter(q => q.status === 'pending').length, `회신 완료 ${outbox.filter(q => q.status === 'replied').length}건`, 'var(--text)'],
+    ['참여 중인 케이스', myCases.length, `의뢰 ${myCases.filter(c => c.owner === me.name).length} · 협진 참여 ${myCases.filter(c => c.owner !== me.name).length}`, 'var(--blue)'],
+    ['7일 안 다학제 회의', week.length, week[0] ? `다음: ${fmtDT(week.sort((a, b) => a.when - b.when)[0].when)}` : '예정 없음', 'var(--purple)']
+  ].map(([l, n, s, col]) => `<div class="stat"><div class="stat-label">${l}</div><div class="stat-num" style="color:${col}">${n}</div><div class="stat-sub">${s}</div></div>`).join('');
+
+  document.getElementById('inboxList').innerHTML = inbox.length ? inbox.map(q => consultCard(q, 'in')).join('') : '<div class="empty">받은 협진 요청이 없습니다.</div>';
+  document.getElementById('outboxList').innerHTML = outbox.length ? outbox.map(q => consultCard(q, 'out')).join('') : '<div class="empty">보낸 요청이 없습니다. 케이스 화면이나 전문가 찾기에서 요청할 수 있습니다.</div>';
+
+  const up = allMdts().filter(m => m.status === 'planned' && m.attendees.includes(me.name)).sort((a, b) => a.when - b.when);
+  document.getElementById('homeMdt').innerHTML = up.length ? up.map(m => `<div class="agenda-item"><b>${esc(fmtDT(m.when))}</b> · ${esc(m.title)}<br><span class="note" style="margin:0">${esc(m.mode)} · 안건 ${m.caseIds.length}건 · 참석 ${m.attendees.length}명</span> <button class="link-btn" onclick="goTab('mdt')">회의 보기 →</button></div>`).join('<div style="height:6px"></div>') : '<div class="empty">예정된 회의가 없습니다.</div>';
+
+  const acts = [];
+  cases.filter(c => c.status !== 'done').forEach(c => c.actions.filter(a => a.owner === me.name && !a.done).forEach(a => acts.push({a, c})));
+  acts.sort((x, y) => (x.a.due || 0) - (y.a.due || 0));
+  document.getElementById('homeActions').innerHTML = acts.length ? acts.map(({a, c}) => actionRow(a, c)).join('') : '<div class="empty">배정된 할 일이 없습니다.</div>';
+
+  const feed = [];
+  cases.filter(c => c.members.includes(me.name)).forEach(c => c.thread.forEach(p => feed.push({p, c})));
+  feed.sort((x, y) => y.p.ts - x.p.ts);
+  document.getElementById('homeFeed').innerHTML = feed.length ? feed.slice(0, 7).map(({p, c}) => `<div class="post" style="margin-top:8px;cursor:pointer" onclick="selectCase('${c.id}')">${avatar(p.by)}<div class="post-body"><div class="post-top"><b>${esc(p.by)}</b> ${esc(deptShort(p.by))} · <span class="tag tag-${esc(p.tag)}">${esc(p.tag === '검사' ? '검사 결과' : p.tag)}</span> · ${esc(c.id)} · ${ago(p.ts)}</div><div class="post-text">${fmtText(p.text.length > 110 ? p.text.slice(0, 110) + '…' : p.text)}</div></div></div>`).join('') : '<div class="empty">아직 활동이 없습니다.</div>';
+}
+
+/* ---------- 탭 2: 케이스 목록 ---------- */
+function renderCaseList() {
+  const filters = [['active', '진행 중'], ['mine', '내 참여'], ['mdt', '회의 예정'], ['done', '확진'], ['all', '전체']];
+  document.getElementById('caseFilters').innerHTML = filters.map(([k, l]) => `<button class="filter-btn ${caseFilter === k ? 'on' : ''}" onclick="caseFilter='${k}';renderCaseList()">${l}</button>`).join('');
+  const q = (document.getElementById('caseSearch').value || '').trim();
+  let list = allCases();
+  if (caseFilter === 'active') list = list.filter(c => c.status !== 'done');
+  if (caseFilter === 'mine') list = list.filter(c => c.members.includes(me.name));
+  if (caseFilter === 'mdt') list = list.filter(c => c.status === 'mdt');
+  if (caseFilter === 'done') list = list.filter(c => c.status === 'done');
+  if (q) list = list.filter(c => [c.id, c.title, c.summary, c.finalDx, ...c.phenos.map(p => p.t), ...c.cands.map(cd => cd.name)].join(' ').includes(q));
+  list.sort((a, b) => (a.status === 'done') - (b.status === 'done') || (b.urgency === '긴급') - (a.urgency === '긴급') || b.createdAt - a.createdAt);
+  document.getElementById('caseList').innerHTML = list.length ? list.map(c => {
+    const top = sortedCands(c)[0];
+    return `<button class="case-item ${c.id === selectedCaseId ? 'active' : ''} ${c.urgency === '긴급' && c.status !== 'done' ? 'urgent' : ''}" onclick="selectCase('${c.id}')">
+      <div class="ci-top"><span>${esc(c.id)} · ${ago(c.createdAt)}</span><span><span class="badge ${STATUS_CLS[c.status]}">${STATUS_LABEL[c.status]}</span>${c.urgency === '긴급' && c.status !== 'done' ? ' <span class="badge b-urgent">긴급</span>' : ''}</span></div>
+      <div class="ci-title">${esc(c.title)}</div>
+      <div class="ci-meta">${esc(c.age)} ${esc(c.sex)} · ${esc(deptShort(c.owner))} · 의료진 ${c.members.length}명</div>
+      <div class="ci-meta" style="margin-top:3px">${c.status === 'done' ? `✅ ${esc(c.finalDx)}` : top && top.sc.pct != null ? `선두 후보: <b style="color:${pctColor(top.sc.pct)}">${esc(top.name)} ${top.sc.pct}%</b>` : '후보 진단 없음'}</div>
+    </button>`;
+  }).join('') : '<div class="empty">조건에 맞는 케이스가 없습니다.</div>';
+}
+
+/* ---------- 탭 2: 케이스 상세 ---------- */
+function fmtText(t) {
+  return esc(t).replace(/@([가-힣]{2,4})/g, (m, n) => EXPERTS.some(e => e.name === n) ? `<span class="mention">@${n}</span>` : m);
+}
+function phenoChip(p, c) {
+  const cat = TERM_CAT[p.t], col = cat ? CAT_COLOR[cat] : '#94a3b8';
+  const removable = !p.seed && p.by === me.name && c.status !== 'done';
+  return `<span class="chip" title="${cat ? esc(cat) : '비표준 용어 — 매칭에 쓰이지 않음'} · 추가: ${esc(p.by)}"><span class="dot" style="background:${col}"></span>${esc(p.t)}${cat ? '' : ' <small style="color:var(--muted)">(비표준)</small>'}${removable ? `<button class="x" aria-label="${esc(p.t)} 삭제" onclick="removePheno('${p.id}')">×</button>` : ''}</span>`;
+}
+function actionRow(a, c) {
+  const late = !a.done && a.due && a.due < Date.now();
+  return `<div class="action ${a.done ? 'done' : ''}"><input type="checkbox" ${a.done ? 'checked' : ''} ${c.status === 'done' ? 'disabled' : ''} aria-label="완료" onchange="toggleAction('${c.id}','${a.id}',this.checked)" /><div><div class="action-text">${esc(a.text)}</div><div class="action-meta">${esc(c.id)} · 담당 <b>${esc(a.owner)}</b> (${esc(deptShort(a.owner))})${a.due ? ` · <span class="${late ? 'late' : ''}">기한 ${fmtDate(a.due)}${late ? ' 지남' : ''}</span>` : ''}${a.done && a.doneBy ? ` · 완료 ${esc(a.doneBy)}` : ''}</div></div></div>`;
+}
+
+function renderCaseDetail() {
+  const c = getCase(selectedCaseId);
+  const wrap = document.getElementById('caseDetail');
+  if (!c) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const done = c.status === 'done', owner = person(c.owner);
+  const years = odysseyYears(c);
+
+  document.getElementById('cdHead').innerHTML = `
+    <div class="case-head"><div style="flex:1;min-width:260px">
+      <div class="row"><span class="badge">${esc(c.id)}</span><span class="badge ${STATUS_CLS[c.status]}">${STATUS_LABEL[c.status]}</span>${c.urgency === '긴급' && !done ? '<span class="badge b-urgent">긴급</span>' : ''}<span class="badge b-lock" title="이름·등록번호 등 식별정보 없이 공유됩니다">🔒 비식별 공유</span></div>
+      <h2>${esc(c.title)}</h2>
+      <div class="case-meta"><span>👤 ${esc(c.age)} · ${esc(c.sex)}</span><span>🏥 의뢰 ${esc(c.owner)} (${esc(owner.dept)}, ${esc(owner.hospital)})</span><span>📅 등록 ${fmtDate(c.createdAt)}</span></div>
+      <div class="case-meta" style="margin-top:4px"><span>👥 참여 의료진 ${c.members.length}명: ${c.members.map(n => `${esc(n)}<small>(${esc(deptShort(n))})</small>`).join(', ')}</span></div>
+    </div>
+    <div class="row">
+      ${!done ? `<button class="btn btn-primary" onclick="openConsult(null,'${c.id}')">📨 협진 요청</button><button class="btn" onclick="openMdtForm('${c.id}')">📅 회의 안건으로</button><button class="btn btn-success" onclick="openClose()">✔ 최종 진단 확정</button>` : (c.owner === me.name ? `<button class="btn" onclick="reopenCase()">↺ 진행 중으로 되돌리기</button>` : '')}
+    </div></div>
+    ${c.summary ? `<p style="font-size:13px;line-height:1.7;margin:12px 0 0">${esc(c.summary)}</p>` : ''}
+    <div class="question-box"><strong>협진 질문 · </strong>${esc(c.question)}</div>
+    <div class="odyssey">
+      <div>증상 시작<b>${c.onsetYear}년</b></div>
+      <div>${done ? '확진까지' : '진단 방랑'}<b>${years}년${done ? '' : '째'}</b></div>
+      <div>거쳐 간 기관·진료과<b>${c.journey.length}곳</b></div>
+      <div>배제된 진단<b>${c.excluded.length}개</b></div>
+      <div>협진 등록 후<b>${Math.max(0, Math.floor(((done && c.closedAt ? c.closedAt : Date.now()) - c.createdAt) / D))}일</b></div>
+    </div>
+    ${done ? `<div class="question-box" style="background:color-mix(in srgb,var(--green) 9%,var(--panel));border-color:var(--green)"><strong style="color:var(--green)">✅ 최종 진단 · </strong><b>${esc(c.finalDx)}</b><br><b>핵심 단서</b> ${esc(c.clue || '-')}<br><b>다음 케이스를 위한 교훈</b> ${esc(c.lesson || '-')}</div>` : ''}`;
+
+  document.getElementById('cdPhenos').innerHTML = c.phenos.length ? c.phenos.map(p => phenoChip(p, c)).join('') : '<div class="empty" style="width:100%">등록된 증상이 없습니다.</div>';
+  document.getElementById('cdOdysseyNote').textContent = done ? `증상 시작 ${years}년 만에 확진` : `증상 시작 ${years}년째 진단 미확정`;
+  document.getElementById('cdJourney').innerHTML = c.journey.length ? `<div class="tl">${c.journey.map((j, i) => `<div class="tl-item ${i === c.journey.length - 1 ? 'now' : ''}"><div class="tl-date">${esc(j[0])}</div><div class="tl-where">${esc(j[1])}</div><div class="tl-what">${esc(j[2])}</div></div>`).join('')}</div>` : '<div class="empty">기록된 여정이 없습니다.</div>';
+  document.getElementById('cdExcluded').innerHTML = c.excluded.length ? c.excluded.map(e => `<div class="ex-item"><s>${esc(e[0])}</s><span>${esc(e[1])}</span></div>`).join('') : '<div class="empty">없음</div>';
+  document.getElementById('cdTests').innerHTML = c.tests.length ? `<table class="kv">${c.tests.map(t => `<tr><td>${esc(t[0])}</td><td>${esc(t[1])}</td></tr>`).join('')}</table>` : '<div class="empty">없음</div>';
+
+  /* 감별진단 보드 */
+  const cands = sortedCands(c);
+  document.getElementById('cdCands').innerHTML = cands.length ? cands.map((cd, i) => {
+    const sc = cd.sc, myv = cd.votes[me.name];
+    const votes = Object.entries(cd.votes).sort((a, b) => a[1].ts - b[1].ts);
+    return `<div class="cand ${i === 0 && sc.pct != null ? 'top' : ''}">
+      <div class="cand-head"><div><div class="cand-name">${esc(cd.name)}${agreeTag(sc.agree)}</div><div class="cand-by">제안 ${esc(cd.by)} · ${esc(deptShort(cd.by))} · ${ago(cd.ts)}</div></div>
+      <div class="cand-pct" style="color:${pctColor(sc.pct)}">${sc.pct == null ? '–' : sc.pct + '%'}<small>합의 가능성 · ${sc.n}명</small></div></div>
+      <div class="bar"><div style="width:${sc.pct || 0}%;background:${pctColor(sc.pct)}"></div></div>
+      <div class="votes">${votes.length ? votes.map(([n, v]) => `<div class="vote"><span class="lv lv-${v.level}">${LV[v.level]}</span> · <b>${esc(n)}</b> <span style="color:var(--muted)">${esc(deptShort(n))}</span>${v.note ? ` — ${esc(v.note)}` : ''}</div>`).join('') : '<div class="vote" style="color:var(--muted)">아직 판단한 의료진이 없습니다.</div>'}</div>
+      ${cd.nextTest ? `<div class="next-test">🧪 확인 검사: ${esc(cd.nextTest)}</div>` : ''}
+      ${!done ? `<div class="my-vote">내 판단: ${[3, 2, 1, 0].map(l => `<button class="vbtn ${myv && myv.level === l ? 'on' : ''}" onclick="openVote('${cd.key}',${l})">${LV[l]}</button>`).join('')}${myv ? ` <button class="link-btn" onclick="withdrawVote('${cd.key}')">철회</button>` : ''}</div>` : ''}
+    </div>`;
+  }).join('') : '<div class="empty">후보 진단이 없습니다. 아래에서 추가하거나 매칭 결과에서 가져오세요.</div>';
+  document.getElementById('candName').disabled = document.getElementById('candTest').disabled = done;
+
+  /* 매칭 */
+  const ms = matchDiseases(c.phenos.map(p => p.t));
+  const sims = similarCases(c);
+  document.getElementById('cdMatch').innerHTML = (ms.length ? ms.map(m => {
+    const exists = c.cands.some(cd => cd.name.replace(/\s/g, '').includes(m.d.name.split(' (')[0].replace(/\s/g, '')));
+    return `<div class="match">
+      <div class="match-head"><div><span class="match-name">${esc(m.d.name)}</span> <span class="match-sub">${esc(m.d.en)} · ${esc(m.d.inherit)}</span></div><span class="match-score" style="color:${pctColor(m.score)}">${m.score}%</span></div>
+      <div class="bar" style="margin:6px 0"><div style="width:${m.score}%;background:${pctColor(m.score)}"></div></div>
+      <div class="chips">${m.hit.map(t => `<span class="chip hit">✓ ${esc(t)}</span>`).join('')}${m.missingCore.map(t => `<span class="chip miss">? ${esc(t)}</span>`).join('')}</div>
+      ${m.missingCore.length ? `<div class="check-hint">🔍 <b>확인하면 판단이 선명해지는 핵심 소견</b> — ${m.missingCore.map(t => `${esc(t)} → ${esc(CHECK_HOW[t] || '추가 병력·진찰')}`).join(' · ')}</div>` : ''}
+      <div class="check-hint">🧪 확진 검사: ${esc(m.d.test)}</div>
+      <div class="row" style="margin-top:6px">${!done ? `<button class="btn btn-sm" ${exists ? 'disabled' : ''} onclick="addCandidateFromKb('${m.d.id}')">${exists ? '보드에 있음' : '감별진단에 추가'}</button>` : ''}<button class="btn btn-sm btn-ghost" onclick="expertsFor('${c.id}')">관련 전문가 보기</button></div>
+    </div>`;
+  }).join('') : '<div class="empty">표준 증상 용어를 추가하면 후보 질환이 표시됩니다.</div>')
+  + (sims.length ? `<div class="similar"><b>📚 비슷한 과거 확진 케이스</b>${sims.map(s => `<div style="margin-top:6px"><button class="link-btn" style="font-size:12px" onclick="selectCase('${s.x.id}')">${esc(s.x.id)} · ${esc(s.x.finalDx)}</button><br><span style="color:var(--muted)">공통 증상: ${s.common.map(esc).join(', ')}</span><br>💡 ${esc(s.x.clue)}</div>`).join('')}</div>` : '')
+  + '<p class="note">증상 겹침으로 계산한 참고 정보이며 진단이 아닙니다. 실제 서비스에서는 HPO 표준 용어와 Orphanet 같은 희귀질환 데이터베이스와 연결합니다.</p>';
+
+  /* 토론 */
+  const th = document.getElementById('cdThread');
+  const atBottom = th.scrollHeight - th.scrollTop - th.clientHeight < 30 || th.dataset.caseId !== c.id;
+  th.innerHTML = c.thread.length ? c.thread.map(p => `<div class="post ${p.tag === '요청' ? 'sys' : ''}">${avatar(p.by)}<div class="post-body"><div class="post-top"><b>${esc(p.by)}</b> ${esc(person(p.by).dept)} · <span class="tag tag-${esc(p.tag)}">${esc(p.tag === '검사' ? '검사 결과' : p.tag)}</span> · <span title="${esc(fmtDT(p.ts))}">${esc(fmtDT(p.ts))}</span></div><div class="post-text">${fmtText(p.text)}</div></div></div>`).join('') : '<div class="empty">첫 의견을 남겨 주세요.</div>';
+  if (atBottom) th.scrollTop = th.scrollHeight;
+  th.dataset.caseId = c.id;
+  ['postText', 'postTag'].forEach(id => { document.getElementById(id).disabled = done; });
+
+  document.getElementById('cdConsults').innerHTML = c.consults.length ? c.consults.map(q => consultCard(q, 'case')).join('') : '<div class="empty">아직 보낸 요청이 없습니다.</div>';
+
+  document.getElementById('cdActions').innerHTML = c.actions.length ? c.actions.slice().sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (a.due || 0) - (b.due || 0)).map(a => actionRow(a, c)).join('') : '<div class="empty">등록된 할 일이 없습니다.</div>';
+  const sel = document.getElementById('actOwner'), keep = sel.value;
+  const owners = [...new Set([me.name, ...c.members])];
+  sel.innerHTML = owners.map(n => `<option value="${esc(n)}">${esc(n)} (${esc(deptShort(n))})</option>`).join('');
+  if (owners.includes(keep)) sel.value = keep;
+}
+
+/* ---------- 탭 3: 전문가 ---------- */
+function expertsFor(caseId) {
+  document.getElementById('expertCase').value = caseId;
+  goTab('experts');
+  renderExperts();
+}
+function renderExperts() {
+  const sel = document.getElementById('expertCase'), keep = sel.value;
+  const active = allCases().filter(c => c.status !== 'done');
+  sel.innerHTML = `<option value="">케이스 기준 추천 안 함</option>` + active.map(c => `<option value="${c.id}">${esc(c.id)} · ${esc(c.title.slice(0, 22))}…</option>`).join('');
+  sel.value = active.some(c => c.id === keep) ? keep : '';
+  const q = (document.getElementById('expertSearch').value || '').trim();
+  const c = sel.value ? getCase(sel.value) : null;
+
+  let list = EXPERTS.map(e => {
+    let score = 0; const why = [];
+    if (c) {
+      const strong = matchDiseases(c.phenos.map(p => p.t)).filter(m => m.score >= 30).slice(0, 3);
+      const names = [...c.cands.map(cd => cd.name), ...strong.map(m => m.d.name.split(' (')[0])];
+      const hitDx = e.focus.filter(f => names.some(n => n.includes(f) || f.includes(n.split(' (')[0])));
+      if (hitDx.length) { score += 3 * hitDx.length; why.push(`후보 질환 전문: ${hitDx.join(', ')}`); }
+      const hitSx = e.focus.filter(f => c.phenos.some(p => p.t.includes(f) || f.includes(p.t)));
+      if (hitSx.length) { score += 2 * hitSx.length; why.push(`증상 관련: ${hitSx.join(', ')}`); }
+      const need = [...new Set(strong.flatMap(m => m.missingCore))].filter(t => e.focus.includes(t));
+      if (need.length) { score += 2 * need.length; why.push(`확인 필요 소견 담당: ${need.join(', ')}`); }
+      if (e.focus.includes('변이 해석') && c.cands.some(cd => /유전자|패널|변이/.test(cd.nextTest || ''))) { score += 3; why.push('후보 확인에 유전자 검사 필요 — 변이 해석'); }
+      const needDept = strong.flatMap(m => m.d.depts);
+      if (needDept.some(d => e.dept.includes(d))) { score += 1; if (!why.length) why.push('매칭 질환 관련 진료과'); }
+    }
+    return {e, score, why, member: c ? c.members.includes(e.name) : false};
+  });
+  if (q) list = list.filter(({e}) => [e.name, e.dept, e.hospital, e.region, ...e.focus].join(' ').includes(q));
+  const rank = x => (x.member || x.e.name === me.name) ? x.score - 100 : x.score;
+  list.sort((a, b) => rank(b) - rank(a) || b.e.rate - a.e.rate);
+  document.getElementById('expertNote').textContent = c ? `${c.id} 케이스의 후보 질환·증상과 전문 분야가 겹치는 순서로 추천합니다. 보라색 테두리가 추천 전문가입니다.` : '케이스를 고르면 그 케이스에 맞는 전문가를 추천합니다.';
+  const AV = {on: ['on', '● 회신 가능'], busy: ['busy', '● 외래 진료 중'], off: ['off', '● 부재 (학회)']};
+  document.getElementById('expertList').innerHTML = list.length ? list.map(({e, score, why, member}) => `<div class="expert ${score >= 3 && !member && e.name !== me.name ? 'rec' : ''}">
+      <div class="expert-top">${avatar(e.name)}<div style="flex:1"><div class="expert-name">${esc(e.name)}${e.name === me.name ? ' <span class="badge">나</span>' : ''}${member ? ' <span class="badge b-open">참여 중</span>' : ''}</div><div class="expert-dept">${esc(e.dept)} · ${esc(e.hospital)} (${esc(e.region)})</div></div><span class="avail ${AV[e.status][0]}">${AV[e.status][1]}</span></div>
+      ${why.length ? `<div class="rec-why">✨ ${esc(why.join(' · '))}</div>` : ''}
+      <div class="chips">${e.focus.map(f => `<span class="chip">${esc(f)}</span>`).join('')}</div>
+      <div class="expert-stats"><div><b>${e.cases}</b>협진 참여</div><div><b>${e.replyH}시간</b>평균 회신</div><div><b>${e.rate}%</b>기한 내 회신</div></div>
+      ${e.name !== me.name ? `<button class="btn btn-primary" onclick="openConsult('${e.name}', document.getElementById('expertCase').value || null)">📨 협진 요청</button>` : ''}
+    </div>`).join('') : '<div class="empty">검색 결과가 없습니다.</div>';
+}
+
+/* ---------- 탭 4: 다학제 회의 ---------- */
+function renderMdt() {
+  const ms = allMdts();
+  const planned = ms.filter(m => m.status === 'planned').sort((a, b) => a.when - b.when);
+  const done = ms.filter(m => m.status === 'done').sort((a, b) => b.when - a.when);
+  const card = m => {
+    const dday = Math.ceil((new Date(m.when).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / D);
+    return `<div class="mdt ${m.status === 'done' ? 'done' : ''}">
+      <div class="row" style="justify-content:space-between"><div><span class="mdt-when">${esc(fmtDT(m.when))}</span> ${m.status === 'planned' ? `<span class="badge b-mdt">${dday <= 0 ? '오늘' : 'D-' + dday}</span>` : '<span class="badge b-done">회의 완료</span>'} <b style="margin-left:4px">${esc(m.title)}</b></div>
+      <div class="row">${m.status === 'planned' ? `<button class="btn btn-sm btn-primary" onclick="openMdtRun('${m.id}')">▶ 회의 진행 · 결론 기록</button>` : ''}</div></div>
+      <div class="note" style="margin-top:4px">${esc(m.mode)} · 주최 ${esc(m.createdBy)} · 참석 ${m.attendees.map(n => `${esc(n)}(${esc(deptShort(n))})`).join(', ')}</div>
+      <div class="agenda">${m.caseIds.map(id => {
+        const c = getCase(id); if (!c) return '';
+        const top = sortedCands(c)[0], open = c.actions.filter(a => !a.done).length;
+        const concl = m.conclusions && m.conclusions[id];
+        return `<div class="agenda-item"><button class="link-btn" style="font-size:12px" onclick="selectCase('${id}')">${esc(id)}</button> ${esc(c.title)}<br><span style="color:var(--muted)">${top && top.sc.pct != null ? `선두 후보 ${esc(top.name)} ${top.sc.pct}%` : '후보 없음'}${top ? ' ' + agreeTag(top.sc.agree) : ''} · 남은 할 일 ${open}건</span>${concl ? `<div class="conclusion">📝 결론: ${esc(concl)}</div>` : ''}</div>`;
+      }).join('')}</div>
+    </div>`;
+  };
+  document.getElementById('mdtList').innerHTML = (planned.length ? '<h4 style="margin-top:14px">예정된 회의</h4>' + planned.map(card).join('') : '<div class="empty" style="margin-top:12px">예정된 회의가 없습니다.</div>') + (done.length ? '<h4 style="margin-top:20px">지난 회의</h4>' + done.map(card).join('') : '');
+}
+
+/* ---------- 탭 5: 라이브러리 ---------- */
+function renderLibrary() {
+  const all = allCases().filter(c => c.status === 'done');
+  const avgYears = all.length ? (all.reduce((a, c) => a + odysseyYears(c), 0) / all.length).toFixed(1) : '-';
+  const avgDays = all.length ? Math.round(all.reduce((a, c) => a + ((c.closedAt || Date.now()) - c.createdAt) / D, 0) / all.length) : '-';
+  const avgDepts = all.length ? (all.reduce((a, c) => a + (c.depts || []).length, 0) / all.length).toFixed(1) : '-';
+  document.getElementById('libStats').innerHTML = [
+    ['확진 케이스', all.length, '협진으로 진단이 확정된 케이스', 'var(--green)'],
+    ['평균 진단 방랑 기간', avgYears + '년', '증상 시작 → 확진', 'var(--red)'],
+    ['협진 등록 후 확진까지', avgDays + '일', 'RareLink 등록 → 최종 진단', 'var(--blue)'],
+    ['케이스당 참여 진료과', avgDepts + '개', '다학제 협진 폭', 'var(--purple)']
+  ].map(([l, n, s, col]) => `<div class="stat"><div class="stat-label">${l}</div><div class="stat-num" style="color:${col}">${n}</div><div class="stat-sub">${s}</div></div>`).join('');
+  const q = (document.getElementById('libSearch').value || '').trim();
+  const list = all.filter(c => !q || [c.finalDx, c.title, c.clue, c.lesson, ...c.phenos.map(p => p.t)].join(' ').includes(q)).sort((a, b) => (b.closedAt || 0) - (a.closedAt || 0));
+  document.getElementById('libList').innerHTML = list.length ? list.map(c => `<div class="lib-card">
+      <div class="row" style="justify-content:space-between"><span class="badge">${esc(c.id)}</span><span class="note" style="margin:0">확진 ${c.closedAt ? fmtDate(c.closedAt) : '-'}</span></div>
+      <div class="lib-dx">${esc(c.finalDx)}</div>
+      <div style="font-size:12px;font-weight:700">${esc(c.title)}</div>
+      <div class="note" style="margin-top:2px">${esc(c.age)} ${esc(c.sex)} · 증상 시작 ${odysseyYears(c)}년 만에 확진 · 협진 등록 후 ${Math.round(((c.closedAt || Date.now()) - c.createdAt) / D)}일</div>
+      <div class="chips" style="margin-top:8px">${c.phenos.map(p => phenoChip({...p, seed: true}, c)).join('')}</div>
+      <div class="lib-row"><b>💡 핵심 단서</b>${esc(c.clue || '-')}</div>
+      <div class="lib-row"><b>📌 교훈</b>${esc(c.lesson || '-')}</div>
+      <div class="lib-row"><b>👥 참여 진료과</b>${esc((c.depts || []).join(', '))}</div>
+      <button class="btn btn-sm" style="margin-top:10px" onclick="selectCase('${c.id}')">케이스 보기</button>
+    </div>`).join('') : '<div class="empty">확진된 케이스가 없습니다.</div>';
+}
+
+/* ---------- 탭 6: 열람 기록 ---------- */
+function renderAudit() {
+  const rows = auditLog.slice().sort((a, b) => b.ts - a.ts).slice(0, 300);
+  document.getElementById('auditBody').innerHTML = rows.length ? rows.map(l => `<tr><td style="white-space:nowrap">${esc(fmtDT(l.ts))}</td><td>${esc(l.user)}</td><td>${esc(l.kind)}</td><td>${esc(l.text)}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted)">기록이 없습니다.</td></tr>';
+}
+</script>
+<script>
+/* =====================================================================
+   동작 · 모달
+   ===================================================================== */
+function openModal(html) { document.getElementById('modalBox').innerHTML = html; document.getElementById('modal').classList.add('show'); const f = document.querySelector('#modalBox [autofocus]'); if (f) f.focus(); }
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+function modalHead(title) { return `<div class="modal-head"><h3>${title}</h3><button class="btn btn-sm" onclick="closeModal()" aria-label="닫기">✕</button></div>`; }
+function post(caseId, tag, text, by) { put(`thread/${caseId}/${uid()}`, {by: by || me.name, tag, text, ts: Date.now()}); }
+
+/* ---------- 증상 ---------- */
+function addPheno() {
+  const inp = document.getElementById('phenoInput'), t = inp.value.trim();
+  const c = getCase(selectedCaseId);
+  if (!t || !c) return;
+  if (c.phenos.some(p => p.t === t)) { toast('이미 있는 증상입니다'); return; }
+  put(`phenos/${c.id}/${uid()}`, {t, by: me.name, ts: Date.now()});
+  log('수정', `${c.id} 증상 추가: ${t}`);
+  if (!TERM_CAT[t]) toast('표준 용어가 아니어서 매칭에는 쓰이지 않습니다');
+  inp.value = '';
+}
+function removePheno(id) {
+  const c = getCase(selectedCaseId), p = c.phenos.find(x => x.id === id);
+  if (!p) return;
+  put(`phenos/${c.id}/${id}`, null);
+  log('수정', `${c.id} 증상 삭제: ${p.t}`);
+}
+
+/* ---------- 감별진단 ---------- */
+function addCandidate(name, nextTest) {
+  const c = getCase(selectedCaseId);
+  name = (name || document.getElementById('candName').value).trim();
+  nextTest = (nextTest != null ? nextTest : document.getElementById('candTest').value).trim();
+  if (!name) { document.getElementById('candName').focus(); return; }
+  if (c.cands.some(cd => cd.name === name)) { toast('이미 보드에 있는 후보입니다'); return; }
+  const key = uid();
+  put(`cands/${c.id}/${key}`, {name, nextTest, by: me.name, ts: Date.now()});
+  log('수정', `${c.id} 후보 진단 추가: ${name}`);
+  document.getElementById('candName').value = ''; document.getElementById('candTest').value = '';
+  openVote(key, 2);
+}
+function addCandidateFromKb(id) { const d = KB.find(x => x.id === id); addCandidate(d.name, d.test); }
+
+function openVote(key, level) {
+  const c = getCase(selectedCaseId), cd = c.cands.find(x => x.key === key);
+  if (!cd) return;
+  const mine = cd.votes[me.name];
+  openModal(`${modalHead('🧩 가능성 판단 남기기')}
+    <p class="note" style="margin-top:0">${esc(c.id)} · <b style="color:var(--text)">${esc(cd.name)}</b></p>
+    <label class="form-label">가능성</label>
+    <div class="row" id="voteLevels">${[3, 2, 1, 0].map(l => `<button class="vbtn ${l === level ? 'on' : ''}" data-l="${l}" onclick="document.querySelectorAll('#voteLevels .vbtn').forEach(b=>b.classList.toggle('on', b===this))">${LV[l]}</button>`).join('')}</div>
+    <label class="form-label" for="voteNote">근거 <span style="color:var(--red)">*</span></label>
+    <textarea id="voteNote" class="field" autofocus placeholder="어떤 소견 때문에 이렇게 판단했는지 (다른 진료과가 이해할 수 있게)">${esc(mine ? mine.note : '')}</textarea>
+    <p class="note">근거가 함께 남아야 다른 진료과가 판단을 검토하고 토론할 수 있습니다.</p>
+    <div class="form-error" id="voteErr"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-primary" onclick="saveVote('${key}')">저장</button></div>`);
+}
+function saveVote(key) {
+  const c = getCase(selectedCaseId), cd = c.cands.find(x => x.key === key);
+  const on = document.querySelector('#voteLevels .vbtn.on'), note = document.getElementById('voteNote').value.trim();
+  if (!note) { document.getElementById('voteErr').textContent = '판단 근거를 입력하세요.'; return; }
+  const level = Number(on.dataset.l);
+  put(`votes/${c.id}/${key}/${me.name}`, {level, note, ts: Date.now()});
+  log('수정', `${c.id} ${cd.name} 판단: ${LV[level]}`);
+  closeModal();
+}
+function withdrawVote(key) {
+  const c = getCase(selectedCaseId), cd = c.cands.find(x => x.key === key);
+  if (!confirm(`'${cd.name}'에 대한 내 판단을 철회할까요?`)) return;
+  put(`votes/${c.id}/${key}/${me.name}`, {level: -1, ts: Date.now()});
+  log('수정', `${c.id} ${cd.name} 판단 철회`);
+}
+
+/* ---------- 토론 ---------- */
+function addPost() {
+  const ta = document.getElementById('postText'), text = ta.value.trim();
+  if (!text) { ta.focus(); return; }
+  const c = getCase(selectedCaseId), tag = document.getElementById('postTag').value;
+  post(c.id, tag, text);
+  log('작성', `${c.id} 토론 글 (${tag})`);
+  const mentioned = [...text.matchAll(/@([가-힣]{2,4})/g)].map(m => m[1]).filter(n => EXPERTS.some(e => e.name === n));
+  if (mentioned.length) toast(`${mentioned.join(', ')} 님에게 알림을 보냈습니다`);
+  ta.value = '';
+}
+
+/* ---------- 할 일 ---------- */
+function addAction() {
+  const t = document.getElementById('actText').value.trim(), c = getCase(selectedCaseId);
+  if (!t) { document.getElementById('actText').focus(); return; }
+  const owner = document.getElementById('actOwner').value, due = document.getElementById('actDue').value;
+  put(`actions/${c.id}/${uid()}`, {text: t, owner, due: due ? new Date(due + 'T18:00').getTime() : null, by: me.name, ts: Date.now()});
+  log('수정', `${c.id} 할 일 추가: ${t} → ${owner}`);
+  document.getElementById('actText').value = ''; document.getElementById('actDue').value = '';
+}
+function toggleAction(caseId, id, done) {
+  put(`actionState/${caseId}/${id}`, done ? {done: true, doneBy: me.name, doneTs: Date.now()} : {done: false});
+  log('수정', `${caseId} 할 일 ${done ? '완료' : '완료 취소'}`);
+}
+
+/* ---------- 협진 요청 ---------- */
+function openConsult(to, caseId) {
+  const active = allCases().filter(c => c.status !== 'done');
+  caseId = caseId || (active.some(c => c.id === selectedCaseId) ? selectedCaseId : active[0] && active[0].id);
+  openModal(`${modalHead('📨 협진 요청 보내기')}
+    <label class="form-label" for="cqTo">받는 의료진</label>
+    <select id="cqTo" class="field">${EXPERTS.filter(e => e.name !== me.name).map(e => `<option value="${esc(e.name)}" ${e.name === to ? 'selected' : ''}>${esc(e.name)} · ${esc(e.dept)} · ${esc(e.hospital)}</option>`).join('')}</select>
+    <label class="form-label" for="cqCase">케이스</label>
+    <select id="cqCase" class="field">${active.map(c => `<option value="${c.id}" ${c.id === caseId ? 'selected' : ''}>${esc(c.id)} · ${esc(c.title)}</option>`).join('')}</select>
+    <label class="form-label">긴급도</label>
+    <div class="row" id="cqUrg"><label><input type="radio" name="cqUrg" value="일반" checked> 일반 (72시간 안 회신)</label><label><input type="radio" name="cqUrg" value="긴급"> 긴급 (24시간 안 회신)</label></div>
+    <label class="form-label" for="cqQ">구체적인 질문 <span style="color:var(--red)">*</span></label>
+    <textarea id="cqQ" class="field" autofocus placeholder="예: 각막 소용돌이 혼탁 확인을 위한 세극등 검사 가능 여부"></textarea>
+    <div class="privacy-box">🔒 받는 의료진에게는 <b>비식별 케이스 정보</b>(증상, 진단 여정, 배제된 진단, 감별진단 보드, 토론)만 공유됩니다. 이름·등록번호는 전달되지 않으며 열람 기록이 남습니다.</div>
+    <div class="form-error" id="cqErr"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-primary" onclick="sendConsult()">요청 보내기</button></div>`);
+}
+function sendConsult() {
+  const to = document.getElementById('cqTo').value, caseId = document.getElementById('cqCase').value;
+  const urgency = document.querySelector('input[name="cqUrg"]:checked').value, question = document.getElementById('cqQ').value.trim();
+  if (!question) { document.getElementById('cqErr').textContent = '질문을 입력하세요. 질문이 구체적일수록 회신이 빨라집니다.'; return; }
+  if (!caseId) { document.getElementById('cqErr').textContent = '진행 중인 케이스가 없습니다.'; return; }
+  const id = uid();
+  put(`consults/${id}`, {caseId, from: me.name, to, urgency, ts: Date.now(), status: 'pending', question});
+  post(caseId, '요청', `📨 @${to} (${person(to).dept})에게 ${urgency} 협진 요청: ${question}`);
+  log('요청', `${caseId} → ${to} 협진 요청 (${urgency})`);
+  closeModal();
+  toast(`${to} 님에게 협진 요청을 보냈습니다`);
+}
+function openReply(qid) {
+  const q = allConsults().find(x => x.id === qid), c = getCase(q.caseId);
+  const cands = sortedCands(c);
+  openModal(`${modalHead('💬 협진 회신')}
+    <div class="question-box" style="margin-top:4px"><strong>${esc(q.from)} (${esc(deptShort(q.from))}) · ${esc(c.id)}</strong><br>${esc(c.title)}<br>❓ ${esc(q.question)}</div>
+    <div class="chips" style="margin-top:10px">${c.phenos.map(p => phenoChip({...p, seed: true}, c)).join('')}</div>
+    <p class="note">케이스 전체(여정·배제 진단·토론)는 <button class="link-btn" onclick="closeModal();selectCase('${c.id}')">케이스 보드</button>에서 볼 수 있습니다.</p>
+    <label class="form-label" for="rpText">회신 내용 <span style="color:var(--red)">*</span></label>
+    <textarea id="rpText" class="field" autofocus placeholder="의견, 권고 검사, 진료 가능 일정 등"></textarea>
+    ${cands.length ? `<label class="form-label" for="rpCand">감별진단 판단도 함께 남기기 (선택)</label>
+    <div class="row"><select id="rpCand" class="field grow"><option value="">남기지 않음</option>${cands.map(cd => `<option value="${cd.key}">${esc(cd.name)}</option>`).join('')}</select>
+    <select id="rpLevel" class="field" style="width:auto">${[3, 2, 1, 0].map(l => `<option value="${l}">${LV[l]}</option>`).join('')}</select></div>` : ''}
+    <div class="form-error" id="rpErr"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-primary" onclick="sendReply('${qid}')">회신 보내기</button></div>`);
+}
+function sendReply(qid) {
+  const q = allConsults().find(x => x.id === qid), text = document.getElementById('rpText').value.trim();
+  if (!text) { document.getElementById('rpErr').textContent = '회신 내용을 입력하세요.'; return; }
+  const {id, ...rest} = q;
+  put(`consults/${qid}`, {...rest, status: 'replied', reply: text, replyTs: Date.now()});
+  post(q.caseId, '의견', `(협진 회신 → @${q.from}) ${text}`);
+  const ck = document.getElementById('rpCand');
+  if (ck && ck.value) put(`votes/${q.caseId}/${ck.value}/${me.name}`, {level: Number(document.getElementById('rpLevel').value), note: text.slice(0, 120), ts: Date.now()});
+  log('회신', `${q.caseId} ${q.from}의 요청에 회신`);
+  closeModal();
+  toast('회신을 보냈습니다');
+}
+function demoReply(qid) {
+  const q = allConsults().find(x => x.id === qid), e = person(q.to);
+  const {id, ...rest} = q;
+  put(`consults/${qid}`, {...rest, status: 'replied', reply: e.demoReply, replyTs: Date.now()});
+  post(q.caseId, '의견', `(협진 회신 → @${q.from}) ${e.demoReply}`, q.to);
+  log('시연', `${q.caseId} ${q.to} 회신 시연`);
+  toast(`${q.to} 님의 회신이 도착했습니다`);
+}
+
+/* ---------- 최종 진단 ---------- */
+function openClose() {
+  const c = getCase(selectedCaseId), top = sortedCands(c)[0];
+  openModal(`${modalHead('✔ 최종 진단 확정')}
+    <p class="note" style="margin-top:0">확정하면 케이스가 라이브러리로 옮겨지고, 핵심 단서가 이후 케이스의 유사 케이스 추천에 쓰입니다.</p>
+    <label class="form-label" for="clDx">최종 진단 <span style="color:var(--red)">*</span></label>
+    <input id="clDx" class="field" list="clDxList" value="${esc(top ? top.name : '')}" autofocus placeholder="예: 파브리병 (GLA 병적 변이)" />
+    <datalist id="clDxList">${c.cands.map(cd => `<option value="${esc(cd.name)}">`).join('')}</datalist>
+    <label class="form-label" for="clClue">결정적인 단서 <span style="color:var(--red)">*</span></label>
+    <textarea id="clClue" class="field" placeholder="무엇이 진단을 결정지었는지"></textarea>
+    <label class="form-label" for="clLesson">다음 의료진을 위한 교훈</label>
+    <textarea id="clLesson" class="field" placeholder="이런 조합이면 이 검사를 먼저"></textarea>
+    <div class="form-error" id="clErr"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-success" onclick="saveClose()">확정</button></div>`);
+}
+function saveClose() {
+  const c = getCase(selectedCaseId);
+  const dx = document.getElementById('clDx').value.trim(), clue = document.getElementById('clClue').value.trim(), lesson = document.getElementById('clLesson').value.trim();
+  if (!dx || !clue) { document.getElementById('clErr').textContent = '최종 진단과 결정적 단서를 입력하세요.'; return; }
+  const depts = [...new Set(c.members.map(deptShort).filter(Boolean))];
+  put(`status/${c.id}`, {status: 'done', finalDx: dx, clue, lesson, closedAt: Date.now(), closedBy: me.name, depts});
+  post(c.id, '결론', `🎉 최종 진단 확정: ${dx}\n결정적 단서: ${clue}${lesson ? `\n교훈: ${lesson}` : ''}`);
+  log('확진', `${c.id} 최종 진단: ${dx}`);
+  closeModal();
+  toast('최종 진단이 확정되어 라이브러리에 추가되었습니다');
+}
+function reopenCase() {
+  const c = getCase(selectedCaseId);
+  if (!confirm('진행 중 상태로 되돌릴까요?')) return;
+  put(`status/${c.id}`, {status: 'open'});
+  log('수정', `${c.id} 진행 중으로 되돌림`);
+}
+
+/* ---------- 다학제 회의 ---------- */
+function defaultMdtTime() { let d = new Date(Date.now() + D); while ([0, 6].includes(d.getDay())) d = new Date(d.getTime() + D); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T17:30`; }
+function openMdtForm(caseId) {
+  const active = allCases().filter(c => c.status !== 'done');
+  const planned = allMdts().filter(m => m.status === 'planned').sort((a, b) => a.when - b.when);
+  const pre = caseId ? getCase(caseId) : null;
+  const preAtt = new Set([me.name, ...(pre ? pre.members : [])]);
+  openModal(`${modalHead('📅 다학제 회의')}
+    <label class="form-label" for="mdTarget">회의</label>
+    <select id="mdTarget" class="field" onchange="document.getElementById('mdNewFields').style.display=this.value?'none':''"><option value="">새 회의 만들기</option>${planned.map(m => `<option value="${m.id}">기존 회의에 추가 — ${esc(fmtDT(m.when))} ${esc(m.title)}</option>`).join('')}</select>
+    <div id="mdNewFields">
+      <label class="form-label" for="mdTitle">회의 이름</label>
+      <input id="mdTitle" class="field" value="희귀질환 다학제 컨퍼런스" />
+      <div class="row" style="margin-top:12px"><div class="grow"><label class="form-label" style="margin-top:0" for="mdWhen">일시</label><input id="mdWhen" class="field" type="datetime-local" value="${defaultMdtTime()}" /></div>
+      <div class="grow"><label class="form-label" style="margin-top:0" for="mdMode">방식</label><select id="mdMode" class="field"><option>화상 (기관 간)</option><option>대면</option><option>대면 + 화상</option></select></div></div>
+    </div>
+    <label class="form-label">안건 케이스</label>
+    <div class="check-list" id="mdCases">${active.map(c => `<label><input type="checkbox" value="${c.id}" ${c.id === caseId ? 'checked' : ''}> ${esc(c.id)} · ${esc(c.title)}</label>`).join('')}</div>
+    <label class="form-label">참석 의료진</label>
+    <div class="check-list" id="mdAtt">${EXPERTS.map(e => `<label><input type="checkbox" value="${esc(e.name)}" ${preAtt.has(e.name) ? 'checked' : ''}> ${esc(e.name)} · ${esc(e.dept)} · ${esc(e.hospital)}</label>`).join('')}</div>
+    <div class="form-error" id="mdErr"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-primary" onclick="saveMdt()">저장</button></div>`);
+}
+function saveMdt() {
+  const caseIds = [...document.querySelectorAll('#mdCases input:checked')].map(i => i.value);
+  const attendees = [...document.querySelectorAll('#mdAtt input:checked')].map(i => i.value);
+  if (!caseIds.length) { document.getElementById('mdErr').textContent = '안건 케이스를 하나 이상 선택하세요.'; return; }
+  const target = document.getElementById('mdTarget').value;
+  let m;
+  if (target) {
+    const old = allMdts().find(x => x.id === target);
+    m = {...old, caseIds: [...new Set([...old.caseIds, ...caseIds])], attendees: [...new Set([...old.attendees, ...attendees])]};
+  } else {
+    const when = new Date(document.getElementById('mdWhen').value).getTime();
+    if (!when) { document.getElementById('mdErr').textContent = '일시를 입력하세요.'; return; }
+    m = {id: uid(), title: document.getElementById('mdTitle').value.trim() || '다학제 회의', when, mode: document.getElementById('mdMode').value, caseIds, attendees, status: 'planned', createdBy: me.name};
+  }
+  const {id, ...rest} = m;
+  put(`mdt/${id}`, rest);
+  caseIds.forEach(cid => {
+    const c = getCase(cid);
+    if (c.status === 'open') put(`status/${cid}`, {status: 'mdt'});
+    post(cid, '요청', `📅 다학제 회의 안건 등록: ${m.title} (${fmtDT(m.when)})`);
+  });
+  log('회의', `${m.title} — 안건 ${caseIds.join(', ')}`);
+  closeModal();
+  toast('회의 안건에 등록했습니다');
+}
+function openMdtRun(mid) {
+  const m = allMdts().find(x => x.id === mid);
+  openModal(`${modalHead('▶ ' + esc(m.title))}
+    <p class="note" style="margin-top:0">${esc(fmtDT(m.when))} · ${esc(m.mode)} · 참석 ${m.attendees.length}명 — 케이스별 결론은 각 케이스 토론에 자동으로 남습니다.</p>
+    ${m.caseIds.map(cid => {
+      const c = getCase(cid); if (!c) return '';
+      const cs = sortedCands(c).slice(0, 3), open = c.actions.filter(a => !a.done);
+      return `<div class="mdt" style="margin-top:12px"><b>${esc(c.id)}</b> ${esc(c.title)}
+        <div class="chips" style="margin-top:8px">${c.phenos.map(p => phenoChip({...p, seed: true}, c)).join('')}</div>
+        <div class="agenda">${cs.map(cd => `<div class="agenda-item"><b>${esc(cd.name)}</b> ${cd.sc.pct == null ? '' : cd.sc.pct + '%'} ${agreeTag(cd.sc.agree)}${cd.nextTest ? `<br><span style="color:var(--muted)">🧪 ${esc(cd.nextTest)}</span>` : ''}</div>`).join('') || '<div class="empty">후보 없음</div>'}</div>
+        ${open.length ? `<p class="note">남은 할 일: ${open.map(a => `${esc(a.text)} (${esc(a.owner)})`).join(' · ')}</p>` : ''}
+        <label class="form-label" for="concl-${c.id}">회의 결론</label>
+        <textarea id="concl-${c.id}" class="field" placeholder="합의 내용, 다음 검사, 담당">${esc((m.conclusions || {})[cid] || '')}</textarea></div>`;
+    }).join('')}
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">닫기</button><button class="btn btn-primary" onclick="saveMdtRun('${mid}')">결론 저장 · 회의 종료</button></div>`);
+}
+function saveMdtRun(mid) {
+  const m = allMdts().find(x => x.id === mid), conclusions = {};
+  m.caseIds.forEach(cid => { const t = document.getElementById('concl-' + cid); if (t && t.value.trim()) conclusions[cid] = t.value.trim(); });
+  const {id, ...rest} = m;
+  put(`mdt/${mid}`, {...rest, status: 'done', conclusions, doneAt: Date.now()});
+  Object.entries(conclusions).forEach(([cid, t]) => {
+    post(cid, '결론', `📅 [${m.title}] 회의 결론: ${t}`);
+    const c = getCase(cid);
+    if (c.status === 'mdt') put(`status/${cid}`, {status: 'open'});
+  });
+  log('회의', `${m.title} 종료 — 결론 ${Object.keys(conclusions).length}건`);
+  closeModal();
+  toast('회의 결론을 저장했습니다');
+}
+
+/* ---------- 새 케이스 등록 ---------- */
+const PII = [[/\d{6}\s*-\s*[1-4]\d{6}/, '주민등록번호'], [/01[016789][-\s]?\d{3,4}[-\s]?\d{4}/, '휴대전화 번호'], [/[\w.-]+@[\w-]+\.[\w.]+/, '이메일 주소'], [/(등록번호|병록번호|차트번호|환자번호)\s*[:：]?\s*\d{4,}/, '병원 등록번호']];
+function openCaseForm() {
+  formPhenos = [];
+  const ages = ['10세 미만', '10대', '10대 후반', '20대', '30대', '40대', '50대', '60대', '70대 이상'];
+  openModal(`${modalHead('＋ 새 협진 케이스 등록')}
+    <label class="form-label" for="nfTitle">주 호소 한 줄 요약 <span style="color:var(--red)">*</span></label>
+    <input id="nfTitle" class="field" autofocus placeholder="예: 3년간 반복되는 근육통과 운동 후 갈색 소변" />
+    <div class="row" style="margin-top:12px">
+      <div class="grow"><label class="form-label" style="margin-top:0" for="nfAge">나이대</label><select id="nfAge" class="field">${ages.map(a => `<option ${a === '30대' ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+      <div class="grow"><label class="form-label" style="margin-top:0" for="nfSex">성별</label><select id="nfSex" class="field"><option>남</option><option>여</option></select></div>
+      <div class="grow"><label class="form-label" style="margin-top:0" for="nfOnset">증상 시작 연도</label><input id="nfOnset" class="field" type="number" min="1950" max="${YEAR}" value="${YEAR - 2}" /></div>
+      <div class="grow"><label class="form-label" style="margin-top:0" for="nfUrg">긴급도</label><select id="nfUrg" class="field"><option>일반</option><option>긴급</option></select></div>
+    </div>
+    <label class="form-label" for="nfSummary">경과 요약</label>
+    <textarea id="nfSummary" class="field" placeholder="증상 경과, 치료 반응 등"></textarea>
+    <label class="form-label" for="nfQ">협진 질문 <span style="color:var(--red)">*</span></label>
+    <textarea id="nfQ" class="field" placeholder="다른 진료과에 무엇을 묻고 싶은지 구체적으로"></textarea>
+    <label class="form-label" for="nfPheno">증상 (표준 용어)</label>
+    <div class="row"><input id="nfPheno" class="field grow" list="termList" placeholder="입력하면 표준 용어가 추천됩니다" onkeydown="if(event.key==='Enter'){event.preventDefault();addFormPheno()}" /><button class="btn btn-sm" onclick="addFormPheno()">추가</button></div>
+    <div class="chips" id="nfPhenos" style="margin-top:8px"></div>
+    <label class="form-label" for="nfJourney">진단 여정 <span class="note" style="margin:0">한 줄에 하나: 연도 | 기관·진료과 | 내용</span></label>
+    <textarea id="nfJourney" class="field" placeholder="2023 | 지역 내과 | 과민성 대장 증후군 진단&#10;2025 | 류마티스내과 | 자가항체 음성"></textarea>
+    <label class="form-label" for="nfEx">이미 배제된 진단 <span class="note" style="margin:0">진단명 | 배제 근거</span></label>
+    <textarea id="nfEx" class="field" placeholder="전신홍반루푸스 | ANA 음성"></textarea>
+    <label class="form-label" for="nfTests">주요 검사 결과 · 가족력 <span class="note" style="margin:0">항목 | 결과</span></label>
+    <textarea id="nfTests" class="field" placeholder="CK | 1,200 U/L&#10;가족력 | 형제 1명 유사 증상"></textarea>
+    <div class="privacy-box"><label><input type="checkbox" id="nfPrivacy"> 이름, 주민등록번호, 병원 등록번호, 연락처 등 환자를 알아볼 수 있는 정보를 넣지 않았습니다.</label><div class="note" style="margin-top:4px">등록 전에 식별정보 형태의 문자열을 자동으로 한 번 더 검사합니다.</div></div>
+    <div class="form-error" id="nfErr"></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-primary" onclick="saveCase()">등록</button></div>`);
+}
+function renderFormPhenos() {
+  document.getElementById('nfPhenos').innerHTML = formPhenos.map((t, i) => `<span class="chip"><span class="dot" style="background:${TERM_CAT[t] ? CAT_COLOR[TERM_CAT[t]] : '#94a3b8'}"></span>${esc(t)}<button class="x" aria-label="삭제" onclick="formPhenos.splice(${i},1);renderFormPhenos()">×</button></span>`).join('');
+}
+function addFormPheno() {
+  const inp = document.getElementById('nfPheno'), t = inp.value.trim();
+  if (t && !formPhenos.includes(t)) formPhenos.push(t);
+  inp.value = ''; renderFormPhenos(); inp.focus();
+}
+function parseLines(v, n) { return v.split('\n').map(l => l.split('|').map(s => s.trim())).filter(a => a[0]).map(a => { while (a.length < n) a.push(''); return a.slice(0, n); }); }
+function saveCase() {
+  const g = id => document.getElementById(id).value.trim();
+  const err = document.getElementById('nfErr');
+  const title = g('nfTitle'), question = g('nfQ');
+  if (!title || !question) { err.textContent = '주 호소 요약과 협진 질문은 필수입니다.'; return; }
+  const allText = ['nfTitle', 'nfSummary', 'nfQ', 'nfJourney', 'nfEx', 'nfTests'].map(g).join('\n');
+  const found = PII.filter(([re]) => re.test(allText)).map(([, l]) => l);
+  if (found.length) { err.textContent = `🔒 식별정보로 보이는 내용이 있습니다: ${found.join(', ')}. 지우고 다시 등록하세요.`; return; }
+  if (!document.getElementById('nfPrivacy').checked) { err.textContent = '식별정보 미포함 확인에 체크하세요.'; return; }
+  const d = new Date(), prefix = `RC-${String(d.getFullYear()).slice(2)}${p2(d.getMonth() + 1)}-`;
+  let n = baseCases().filter(c => c.id.startsWith(prefix)).length + 1;
+  while (baseCases().some(c => c.id === prefix + p2(n))) n++;
+  const id = prefix + p2(n);
+  const onset = Math.min(YEAR, Math.max(1950, Number(g('nfOnset')) || YEAR));
+  put(`cases/${id}`, {status: 'open', urgency: g('nfUrg'), owner: me.name, createdAt: Date.now(), title, age: g('nfAge'), sex: g('nfSex'), onsetYear: onset,
+    summary: g('nfSummary'), question, phenos: formPhenos.slice(), journey: parseLines(g('nfJourney'), 3), excluded: parseLines(g('nfEx'), 2), tests: parseLines(g('nfTests'), 2)});
+  post(id, '질문', question);
+  log('등록', `${id} 새 케이스 등록`);
+  closeModal();
+  caseFilter = 'active';
+  selectedCaseId = id;
+  goTab('board');
+  renderAll();
+  toast(`${id} 케이스를 등록했습니다 — 증상 매칭 결과를 확인하세요`);
+}
+
+/* ---------- 로그인 · 공용 ---------- */
+function startSync() {
+  if (!fbReady || !fbDb) return;
+  if (!rootAttached) {
+    rootAttached = true;
+    fbDb.ref(ROOT).on('value', snap => { remote = snap.val() || {}; renderAll(); }, e => { console.warn('동기화 실패', e); toast('⚠️ 공용 데이터를 불러오지 못했습니다 (권한 확인 필요)'); });
+  }
+  if (!auditAttached) {
+    auditAttached = true;
+    auditLog = [];
+    fbDb.ref(AUDIT).limitToLast(300).on('child_added', s => { const v = s.val(); if (v) { auditLog.push(v); if (auditLog.length > 300) auditLog.shift(); renderAudit(); } });
+  }
+}
+function stopSync() {
+  if (fbReady && fbDb) { fbDb.ref(ROOT).off(); fbDb.ref(AUDIT).off(); }
+  rootAttached = auditAttached = false;
+}
+function enterApp(name) {
+  me = {name, ...ACCOUNTS[name]};
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('userInfo').textContent = `${name} · ${me.dept} · ${me.hospital} (시연 계정)`;
+  if (!fbReady) { try { remote = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); } catch (e) { remote = {}; } }
+  booted = true;
+  startSync();
+  renderAll();
+  renderAudit();
+  log('인증', '로그인');
+}
+function loginUser() {
+  const name = document.getElementById('doctorSelect').value, pw = document.getElementById('passwordInput').value;
+  const err = document.getElementById('loginError'), btn = document.getElementById('loginBtn');
+  if (!name) { err.textContent = '의료진을 선택하세요.'; return; }
+  if (!fbReady || !fbAuth) { enterApp(name); return; }  /* 오프라인 시연 모드 */
+  if (!pw) { err.textContent = '비밀번호를 입력하세요.'; return; }
+  btn.disabled = true; btn.textContent = '로그인 중...';
+  fbAuth.signInWithEmailAndPassword(ACCOUNTS[name].email, pw)
+    .then(() => { err.textContent = ''; enterApp(name); })
+    .catch(e => {
+      const map = {'auth/wrong-password': '비밀번호가 올바르지 않습니다.', 'auth/invalid-credential': '비밀번호가 올바르지 않습니다.', 'auth/user-not-found': '등록되지 않은 계정입니다.', 'auth/too-many-requests': '시도가 너무 많습니다. 잠시 후 다시 시도하세요.', 'auth/network-request-failed': '네트워크 연결을 확인하세요.'};
+      err.textContent = map[e.code] || `로그인 실패 (${e.code || e.message})`;
+    })
+    .finally(() => { btn.disabled = false; btn.textContent = '로그인'; });
+}
+function logout() {
+  if (!confirm('로그아웃하시겠습니까?')) return;
+  log('인증', '로그아웃');
+  stopSync();
+  booted = false;
+  closeModal();
+  if (fbReady && fbAuth) fbAuth.signOut().catch(() => {});
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('passwordInput').value = '';
+  goTab('home');
+}
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  document.getElementById('themeBtn').textContent = document.body.classList.contains('dark') ? '☀️ 라이트모드' : '🌙 다크모드';
+}
+function resetDemo() {
+  if (!confirm('모든 의료진이 추가한 공유 기록(케이스, 의견, 요청, 회의)을 지우고 처음 상태로 되돌릴까요?')) return;
+  remote = {};
+  saveLocal();
+  if (fbReady && fbDb) fbDb.ref(ROOT).remove().catch(() => toast('초기화 실패 — 권한을 확인하세요'));
+  log('시연', '시연 데이터 초기화');
+  renderAll();
+  toast('시연 데이터를 초기화했습니다');
+}
+
+/* 초기 설정 */
+document.getElementById('termList').innerHTML = Object.values(TERMS).flat().map(t => `<option value="${esc(t)}">`).join('');
+document.getElementById('dxList').innerHTML = KB.map(d => `<option value="${esc(d.name)}">`).join('');
+setInterval(() => { if (booted) { renderBadge(); if (currentTab === 'home') renderHome(); } }, 60000);
+</script>
+</body>
+</html>
