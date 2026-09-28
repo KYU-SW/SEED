@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>바이탈 사인 v5.5.0</title>
+<style>
+:root {
+  --bg: #f5f7fb; --panel: #fff; --text: #1f2937; --muted: #6b7280; --line: #e5e7eb; --soft: #f3f4f6;
+  --blue: #2563eb; --green: #10b981; --amber: #f59e0b; --red: #dc2626; --purple: #7c3aed;
+}
+body.dark {
+  --bg: #111827; --panel: #1f2937; --text: #f9fafb; --muted: #9ca3af; --line: #374151; --soft: #273449;
+  --blue: #60a5fa; --green: #34d399; --amber: #fbbf24; --red: #f87171; --purple: #a78bfa;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; }
+.container { max-width: 1780px; margin: auto; padding: 20px; }
+.header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; border-bottom: 2px solid var(--line); padding-bottom: 16px; margin-bottom: 18px; }
+.header h1 { font-size: 27px; margin: 0 0 6px; }
+.header p { margin: 0; color: var(--muted); font-size: 14px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button, input, select { font: inherit; }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 8px 11px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.btn:hover { filter: brightness(.97); }
+.btn:focus-visible, .tab-btn:focus-visible, .tab:focus-visible, .patient-button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.btn-primary { background: var(--blue); border-color: var(--blue); color: white; }
+.btn-success { background: var(--green); border-color: var(--green); color: white; }
+.btn-danger { background: var(--red); border-color: var(--red); color: white; }
+.btn-ghost { background: var(--soft); }
+.auto-chip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 10px; }
+.unack-badge { font-size: 12px; font-weight: 800; padding: 7px 12px; border-radius: 8px; background: var(--red); color: #fff; }
+.unack-badge.zero { background: var(--soft); color: var(--muted); border: 1px solid var(--line); }
+.alarm-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+.ack-btn { border: none; background: transparent; color: var(--blue); font-size: 10px; font-weight: 800; cursor: pointer; padding: 0; }
+.alarm.acked { opacity: .5; }
+.acked-tag { font-size: 10px; font-weight: 700; color: var(--muted); }
+.alarm-elapsed { font-size: 10px; color: var(--muted); margin: 4px 0 0; }
+.alarm-elapsed.stale-text { color: var(--red); font-weight: 800; }
+.alarm.stale { border-left-width: 5px; animation: fbPulse 1.6s infinite; }
+@keyframes fbPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,.35); } 50% { box-shadow: 0 0 0 5px rgba(220,38,38,0); } }
+.fb-status { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 6px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); }
+.fb-status.ok { color: var(--green); border-color: var(--green); }
+.fb-status.warn { color: var(--amber); border-color: var(--amber); }
+.fb-status.fail { color: var(--red); border-color: var(--red); }
+.intervention-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.intervention-list { max-height: 220px; overflow-y: auto; }
+.intervention-item { display: flex; gap: 8px; align-items: center; background: var(--soft); border-left: 3px solid var(--blue); border-radius: 6px; padding: 8px 10px; margin-top: 6px; font-size: 11px; flex-wrap: wrap; }
+.intervention-time { color: var(--muted); min-width: 60px; }
+.intervention-label { font-weight: 800; }
+.intervention-doctor { color: var(--muted); margin-left: auto; }
+.assignment-box { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 11px; margin-top: 8px; }
+.assignment-box select { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 6px; padding: 5px 7px; font-size: 11px; }
+.assignment-label { color: var(--muted); font-weight: 700; }
+.timeline-list { max-height: 260px; overflow-y: auto; }
+.timeline-item { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-left: 3px solid var(--line); background: var(--soft); border-radius: 6px; margin-top: 6px; font-size: 12px; }
+.timeline-time { color: var(--muted); min-width: 70px; }
+.timeline-risk { font-weight: 800; min-width: 44px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+.modal-box { background: var(--panel); border-radius: 12px; padding: 20px; max-width: 560px; width: 100%; max-height: 82vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+.modal-head h3 { margin: 0; }
+.unack-modal-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.unack-modal-item { background: var(--soft); border-left: 4px solid var(--red); border-radius: 8px; padding: 10px 12px; font-size: 12px; }
+.unack-modal-item .um-top { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 4px; }
+.unack-modal-item .um-actions { display: flex; gap: 6px; margin-top: 6px; }
+.tab-nav { display: flex; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn { border: 1px solid transparent; background: transparent; color: var(--text); padding: 8px 13px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.tab-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+.tab-btn:hover { background: var(--soft); }
+.tab-btn.active:hover { background: var(--blue); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.toolbar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.toolbar input, .toolbar select { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 7px; padding: 8px 9px; font-size: 12px; }
+.update-time { font-size: 12px; color: var(--muted); }
+.main-grid { display: grid; grid-template-columns: 245px minmax(0, 1fr) 330px; gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; box-shadow: 0 1px 2px rgba(0, 0, 0, .03); }
+.card h3 { font-size: 14px; margin: 0 0 12px; }
+.patient-list { max-height: 760px; overflow-y: auto; }
+.patient-button { width: 100%; border: 1px solid var(--line); background: var(--soft); color: var(--text); padding: 10px; margin-bottom: 8px; border-radius: 8px; text-align: left; cursor: pointer; }
+.patient-button.active { border-color: var(--blue); background: color-mix(in srgb, var(--blue) 8%, transparent); }
+.patient-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.patient-name { font-weight: 700; font-size: 13px; }
+.patient-info { font-size: 11px; color: var(--muted); margin-top: 4px; word-break: keep-all; }
+.badge { font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 99px; color: #fff; }
+.danger { background: var(--red); }
+.warning { background: var(--amber); }
+.success { background: var(--green); }
+.trend-up { color: var(--red); font-weight: 800; font-size: 10px; margin-left: 5px; }
+.patient-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.patient-head h2 { font-size: 17px; margin: 0 0 3px; }
+.patient-head p { font-size: 12px; color: var(--muted); margin: 0; }
+.score-wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; margin-top: 14px; }
+.score-box { background: var(--soft); border-radius: 10px; padding: 20px; text-align: center; }
+.score-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+.score-value { font-size: 60px; line-height: 1; font-weight: 800; margin: 8px 0; }
+.score-change { font-size: 12px; font-weight: 800; }
+.status-indicator { display: inline-block; margin-top: 8px; color: #fff; padding: 7px 11px; border-radius: 7px; font-size: 12px; font-weight: 800; }
+.reason-box { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.reason-box h4 { margin: 0 0 8px; font-size: 13px; }
+.reason-list { margin: 0; padding-left: 18px; }
+.reason-list li { margin: 7px 0; font-size: 12px; }
+.vitals-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.view-toggle button { border: none; background: transparent; color: var(--text); padding: 8px 11px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.view-toggle button + button { border-left: 1px solid var(--line); }
+.view-toggle button.on { background: var(--blue); color: #fff; }
+.view-count { font-size: 10px; margin-left: 4px; padding: 1px 6px; border-radius: 99px; background: var(--soft); color: var(--text); }
+.view-toggle button.on .view-count { background: rgba(255,255,255,.25); color: #fff; }
+.scope-note { display: none; margin: -4px 0 14px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--blue); background: color-mix(in srgb, var(--blue) 7%, var(--panel)); font-size: 12px; font-weight: 700; }
+.scope-note.show { display: block; }
+.my-empty { display: none; text-align: center; padding: 40px 20px; }
+body.no-my-patients .my-empty { display: block; }
+body.no-my-patients .tab-content { display: none !important; }
+.safety-banner { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--text); }
+.chip-danger { border-color: var(--red); color: var(--red); background: color-mix(in srgb, var(--red) 8%, var(--panel)); }
+.chip-purple { border-color: var(--purple); color: var(--purple); background: color-mix(in srgb, var(--purple) 8%, var(--panel)); }
+.chip-amber { border-color: var(--amber); color: var(--text); background: color-mix(in srgb, var(--amber) 12%, var(--panel)); }
+.bundle-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.bundle-clock { text-align: right; }
+.bundle-timer { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.bundle-timer-sub { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 700; }
+.bundle-bar { height: 8px; background: var(--soft); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; margin: 12px 0 4px; }
+.bundle-bar > div { height: 100%; background: var(--green); transition: width .5s; }
+.bundle-items { display: grid; gap: 6px; margin-top: 10px; }
+.b-item { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 7px; background: var(--soft); border-left: 3px solid var(--amber); }
+.b-item.done { border-left-color: var(--green); }
+.b-item.na { border-left-color: var(--line); opacity: .7; }
+.b-mark { font-weight: 800; text-align: center; font-size: 14px; }
+.b-item.done .b-mark { color: var(--green); }
+.b-label { font-size: 12px; font-weight: 700; }
+.b-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.b-sub.warn { color: var(--red); font-weight: 700; }
+.b-act { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.b-act input { width: 82px; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 6px; padding: 5px 6px; font-size: 11px; }
+.b-stamp { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.5; }
+.b-late { color: var(--red); font-weight: 800; }
+.bundle-warn { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--red); }
+.bundle-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.bundle-chip { font-size: 10px; font-weight: 800; margin-left: 5px; color: var(--amber); }
+.bundle-chip.over { color: var(--red); }
+.vital-card { background: var(--soft); border-radius: 8px; padding: 12px; text-align: center; border: 1px solid transparent; }
+.vital-card.abnormal { border-color: var(--amber); }
+.vital-label { font-size: 11px; color: var(--muted); font-weight: 700; }
+.vital-value { font-size: 18px; font-weight: 800; margin-top: 5px; }
+.vital-delta { font-size: 10px; font-weight: 700; margin-top: 2px; }
+.vital-range { font-size: 9px; color: var(--muted); margin-top: 3px; }
+.chart-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tab { border: 1px solid var(--line); background: var(--soft); color: var(--text); padding: 6px 9px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+.chart-wrap { height: 270px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); padding: 10px; position: relative; }
+.chart-wrap svg { width: 100%; height: 100%; display: block; }
+.chart-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 8px; }
+.guide { padding: 13px; border-radius: 9px; border: 1px solid var(--line); background: var(--soft); margin-top: 12px; }
+.guide p { margin: 6px 0 0; font-size: 12px; }
+.action-box { margin-top: 12px; padding: 13px; border-radius: 9px; border: 1px solid var(--line); background: var(--soft); border-left: 4px solid var(--line); }
+.action-box.danger { border-left-color: var(--red); background: var(--soft); }
+.action-box.warning { border-left-color: var(--amber); background: var(--soft); }
+.action-box.success { border-left-color: var(--green); background: var(--soft); }
+.action-box h4 { margin: 0 0 9px; font-size: 13px; }
+.action-box ul { margin: 0; padding-left: 0; list-style: none; }
+.action-box li { font-size: 12px; line-height: 1.6; padding-left: 20px; position: relative; margin: 5px 0; }
+.action-box li::before { content: '✓'; position: absolute; left: 0; font-weight: 800; }
+.action-box.danger li::before { color: var(--red); }
+.action-box.warning li::before { color: var(--amber); }
+.action-box.success li::before { color: var(--green); }
+.shap-row { display: grid; grid-template-columns: 70px 1fr 42px; gap: 8px; align-items: center; margin: 9px 0; font-size: 11px; }
+.bar-bg { height: 19px; background: var(--soft); border-radius: 5px; overflow: hidden; border: 1px solid var(--line); }
+.bar-fill { height: 100%; background: var(--blue); }
+.bar-fill.hot { background: var(--red); }
+.shap-val { text-align: right; font-weight: 700; }
+.side-section { margin-bottom: 18px; }
+.mini-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.mini-title h3 { margin: 0; }
+.alarm-list { max-height: 320px; overflow-y: auto; }
+.alarm { border-left: 4px solid var(--blue); background: var(--soft); border-radius: 6px; padding: 9px; margin-bottom: 7px; }
+.alarm.danger-border { border-left-color: var(--red); }
+.alarm.warning-border { border-left-color: var(--amber); }
+.alarm-head { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--muted); }
+.alarm-msg { font-size: 11px; margin: 5px 0 0; }
+.feedback-group { display: flex; gap: 8px; }
+.feedback-group input { flex: 1; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 9px; border-radius: 7px; font-size: 12px; }
+.feedback-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.feedback-bar select { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 7px; padding: 6px 8px; font-size: 11px; }
+.feedback-list { max-height: 300px; overflow-y: auto; margin-top: 10px; }
+.feedback-item { background: var(--soft); border-radius: 6px; border-left: 3px solid var(--line); padding: 10px; margin-top: 7px; font-size: 12px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.feedback-item.own { border-left-color: var(--green); }
+.feedback-item.unread { border-left-color: var(--blue); background: color-mix(in srgb, var(--blue) 7%, var(--soft)); }
+.feedback-meta { color: var(--muted); font-size: 10px; margin-bottom: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.author { font-weight: 800; color: var(--text); font-size: 11px; }
+.role-tag { font-size: 9px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; color: var(--muted); }
+.new-dot { font-size: 9px; font-weight: 800; color: #fff; background: var(--blue); border-radius: 99px; padding: 1px 6px; }
+.count-badge { font-size: 10px; font-weight: 800; color: #fff; background: var(--blue); border-radius: 99px; padding: 2px 7px; }
+.link-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0; }
+.link-btn:hover { color: var(--red); }
+.footer { margin-top: 18px; background: var(--soft); color: var(--muted); border: 1px solid var(--line); padding: 11px; border-radius: 8px; text-align: center; font-size: 11px; }
+.empty { font-size: 12px; color: var(--muted); padding: 14px 4px; text-align: center; }
+.table-container { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th { background: var(--soft); padding: 10px; text-align: left; border-bottom: 2px solid var(--line); font-weight: 700; }
+.data-table td { padding: 10px; border-bottom: 1px solid var(--line); }
+.data-table tbody tr:hover { background: var(--soft); }
+.auto-tag { font-size: 9px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 4px; }
+.message-box { background: var(--soft); border-left: 3px solid var(--blue); border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+.message-box.mine { border-left-color: var(--green); }
+.message-header { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: 700; }
+.message-time { font-size: 10px; color: var(--muted); }
+.subcard { padding: 14px; background: var(--soft); border-radius: 8px; border: 1px solid var(--line); }
+.stat-box { padding: 16px; background: var(--soft); border-radius: 8px; text-align: center; }
+.stat-num { font-size: 48px; font-weight: 800; line-height: 1; }
+.note { font-size: 11px; color: var(--muted); margin-top: 10px; }
+.login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--bg); padding: 20px; }
+.login-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 36px 32px; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, .08); }
+.login-title { text-align: center; font-size: 26px; margin: 0 0 6px; }
+.login-sub { text-align: center; color: var(--muted); margin: 0 0 28px; font-size: 13px; }
+.login-label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
+.login-field { width: 100%; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 10px; font-size: 13px; margin-bottom: 18px; }
+.login-error { color: var(--red); font-size: 12px; font-weight: 700; margin: -8px 0 12px; min-height: 16px; }
+.login-submit { width: 100%; padding: 12px; font-size: 13px; }
+.login-hint { margin-top: 20px; padding: 12px; background: var(--soft); border: 1px solid var(--line); border-radius: 8px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+@media (max-width: 1250px) { .main-grid { grid-template-columns: 220px 1fr; } .vitals-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 850px) { .b-item { grid-template-columns: 22px minmax(0, 1fr); } .b-act { grid-column: 2; justify-content: flex-start; } .main-grid { grid-template-columns: 1fr; } .vitals-grid { grid-template-columns: repeat(2, 1fr); } .header { flex-direction: column; } .score-wrap { grid-template-columns: 1fr; } }
+@media print {
+  .tab-nav, .header-actions, .toolbar, .btn { display: none !important; }
+  .tab-content { display: block !important; }
+  body { background: #fff; }
+  .card { break-inside: avoid; box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* 🤖 AI 임상 요약 */
+.ai-summary-box { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+.ai-summary-box.loading { color: var(--muted); font-style: italic; }
+.ai-summary-box.error { border-left-color: var(--red); color: var(--red); }
+.ai-summary-meta { margin-top: 8px; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<!-- 로그인 화면 -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1 class="login-title">🩺 바이탈 사인</h1>
+    <p class="login-sub">패혈증 조기 경고 시스템 v5.5.0</p>
+
+    <label class="login-label" for="doctorSelect">의료진 선택</label>
+    <select id="doctorSelect" class="login-field" onkeydown="if(event.key==='Enter')loginUser()">
+      <option value="">의료진을 선택하세요</option>
+      <option value="심가원">심가원 (PM, 26615031)</option>
+      <option value="이아연">이아연 (PM, 26615038)</option>
+      <option value="하유진">하유진 (PM, 26615053)</option>
+    </select>
+
+    <label class="login-label" for="passwordInput">비밀번호</label>
+    <input id="passwordInput" class="login-field" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')loginUser()" />
+
+    <p id="loginError" class="login-error"></p>
+
+    <button onclick="loginUser()" class="btn btn-primary login-submit">로그인</button>
+
+    <div class="login-hint">
+      <strong>계정 안내</strong><br>
+      의료진: 하유진 · 이아연 · 심가원<br>
+      비밀번호는 각자 설정한 값을 입력하세요.
+    </div>
+    <div style="text-align:center;margin-top:14px;"><span class="fb-status" id="fbStatusIndicatorLogin">🟡 연결 확인 중...</span></div>
+  </div>
+</div>
+
+<div id="mainApp" style="display:none;">
+<div class="container">
+  <div class="header">
+    <div><h1>🩺 패혈증 조기 경고 시스템 v5.5.0</h1><p id="userInfo">바이탈 사인 · 의료진용 실시간 모니터링</p><span class="fb-status" id="fbStatusIndicator">🟡 연결 확인 중...</span></div>
+    <div class="header-actions">
+      <div class="view-toggle" role="group" aria-label="환자 보기 범위"><button id="viewAllBtn" class="on" onclick="setViewMode('all')">전체 환자 <span class="view-count" id="viewAllCount">0</span></button><button id="viewMineBtn" onclick="setViewMode('mine')">내 환자 <span class="view-count" id="viewMineCount">0</span></button></div>
+      <span class="unack-badge zero" id="globalAlarmBadge" onclick="openUnackModal()" title="클릭하면 전체 환자의 미확인 위험 알람을 볼 수 있습니다" style="cursor:pointer">미확인 위험 알람 0건</span>
+      <label class="auto-chip"><input type="checkbox" id="autoRefresh" onchange="toggleAuto()" /> 10초 자동 갱신</label>
+      <button class="btn" id="themeBtn" onclick="toggleTheme()">🌙 다크모드</button>
+      <button class="btn btn-primary" onclick="refreshData()">↻ 갱신</button>
+      <button class="btn btn-danger" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- 탭 네비게이션 -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('monitoring', this)">👨‍⚕️ 모니터링</button>
+    <button class="tab-btn" onclick="switchTab('chart', this)">📋 환자 차트</button>
+    <button class="tab-btn" onclick="switchTab('history', this)">📊 이력 조회</button>
+    <button class="tab-btn" onclick="switchTab('messages', this)">💬 메시지</button>
+    <button class="tab-btn" onclick="switchTab('summary', this)">📑 요약</button>
+    <button class="tab-btn" onclick="switchTab('audit', this)">📋 로그</button>
+  </div>
+
+  <div class="scope-note" id="scopeNote"></div>
+  <div class="card my-empty" id="myEmptyNotice">
+    <h3>담당으로 지정된 환자가 없습니다</h3>
+    <p class="note">전체 환자 보기에서 환자를 고른 뒤 '담당 전공의'를 본인으로 지정하면 이곳에 표시됩니다.</p>
+    <button class="btn btn-primary" onclick="setViewMode('all')">전체 환자 보기로 전환</button>
+  </div>
+
+  <!-- 탭 1: 모니터링 -->
+  <div id="monitoring" class="tab-content active">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <input id="searchInput" type="text" placeholder="환자명 / 병실 검색" oninput="renderPatientList()" />
+        <select id="sortSelect" onchange="renderPatientList()"><option value="risk">위험도 높은 순</option><option value="rise">급상승 우선</option><option value="room">병실 순</option></select>
+        <select id="statusFilterSelect" onchange="renderPatientList()"><option value="전체">전체 등급</option><option value="위험">위험만</option><option value="주의">주의만</option><option value="정상">정상만</option></select>
+      </div>
+      <div class="toolbar-right"><span class="update-time" id="updateTime">마지막 업데이트: -</span></div>
+    </div>
+
+    <div class="main-grid">
+      <div class="card patient-list"><h3 id="patientListTitle">ICU 환자 우선순위</h3><div id="patientList">로딩 중...</div></div>
+
+      <div>
+        <div class="card">
+          <div class="patient-head"><div><h2 id="patientName">-</h2><p id="patientInfo">-</p><div class="safety-banner" id="safetyBanner"></div><div class="assignment-box"><span class="assignment-label">담당 전공의</span><select id="assignedDoctorSelect" onchange="updateAssignment()"><option value="">미지정</option><option value="하유진">하유진</option><option value="이아연">이아연</option><option value="심가원">심가원</option></select><span class="assignment-label">담당 간호사</span><select id="assignedNurseSelect" onchange="updateAssignment()"><option value="">미지정</option><option value="정하늘">정하늘</option><option value="김보라">김보라</option><option value="최은서">최은서</option></select></div></div><span class="badge" id="priorityBadge">-</span></div>
+          <div class="score-wrap">
+            <div class="score-box"><div class="score-label">패혈증 위험도 스코어</div><div><span class="score-value" id="riskScore">-</span><span style="font-size:19px;font-weight:800">%</span></div><div class="score-change" id="scoreChange">-</div><div class="status-indicator" id="statusIndicator">-</div></div>
+            <div class="reason-box"><h4>⚠️ 위험도 상승 주요 원인</h4><ul class="reason-list" id="reasonList"></ul></div>
+          </div>
+          <div class="guide" id="guideBox">-</div>
+          <div class="action-box" id="actionBox">-</div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>📋 자동 요약 <span class="note" style="font-weight:400;">(규칙 기반)</span></h3>
+          <p class="note" style="margin-top:0">현재 환자의 활력징후·검사수치·위험도 변화를 규칙 기반으로 즉시 정리해 드립니다. 외부 API 호출 없이 이 화면에서 바로 계산됩니다.</p>
+          <button class="btn btn-primary" id="aiSummaryBtn" onclick="generateAiSummary()">요약 생성</button>
+          <div id="aiSummaryBox"></div>
+        </div>
+
+        <div class="card" id="bundleCard" style="margin-top:18px"></div>
+
+        <div class="card" style="margin-top:18px"><h3>실시간 생체신호 · 검사</h3><div class="vitals-grid" id="vitalsGrid">로딩 중...</div></div>
+
+        <div class="card" style="margin-top:18px">
+          <h3>24시간 변화 추이</h3>
+          <div class="chart-tabs" id="chartTabs"></div>
+          <div class="chart-wrap"><svg id="trendSvg" viewBox="0 0 900 250" preserveAspectRatio="none" role="img" aria-label="24시간 추이 그래프"></svg></div>
+          <div class="chart-legend"><span>24시간 전</span><span id="chartLabel">-</span><span>현재</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="side-section"><h3>변수 영향도 (SHAP)</h3><div id="shapAnalysis">로딩 중...</div></div>
+        <div class="side-section">
+          <div class="mini-title"><h3>알람 로그</h3><button class="btn btn-ghost" onclick="clearAlarms()">확인된 알람 정리</button></div>
+          <div class="alarm-list" id="alarmList"><div class="empty">알람 없음</div></div>
+        </div>
+        <div class="side-section">
+          <div class="mini-title"><h3>🩺 의료진 조치 기록</h3></div>
+          <div class="intervention-actions">
+            <button class="btn btn-ghost" onclick="recordIntervention('call')">📞 담당 의료진 호출</button>
+            <button class="btn btn-ghost" onclick="recordIntervention('test')">🧪 검사 요청</button>
+            <button class="btn btn-success" onclick="recordIntervention('done')">✅ 처치 완료</button>
+          </div>
+          <div class="intervention-list" id="interventionList"><div class="empty">기록된 조치가 없습니다.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;">
+      <div class="card">
+        <div class="feedback-bar">
+          <h3 style="margin:0">의료진 공유 피드백 <span class="count-badge" id="fbUnread" style="display:none">0</span></h3>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="fbFilter" onchange="renderFeedback()"><option value="all">전체 의료진</option><option value="mine">내 피드백만</option><option value="others">동료 피드백만</option></select>
+            <button class="btn btn-ghost" onclick="simulateIncoming()">동료 피드백 수신(시연)</button>
+          </div>
+        </div>
+        <div class="feedback-group"><input id="feedbackInput" type="text" placeholder="환자 상태에 대한 피드백을 입력하세요" onkeydown="if(event.key==='Enter')addFeedback()" /><button class="btn btn-success" onclick="addFeedback()">공유</button></div>
+        <p class="note" style="margin-top:8px">작성한 피드백은 같은 환자를 보고 있는 다른 의료진 화면에 바로 표시됩니다. (같은 브라우저의 다른 탭/창으로 확인 가능)</p>
+        <div class="feedback-list" id="feedbackList"></div>
+      </div>
+      <div class="card">
+        <h3>모델 성능</h3>
+        <div style="font-size:12px;line-height:1.7;color:var(--muted)"><strong>AUC:</strong> 0.93<br><strong>F1 Score:</strong> 0.91<br><strong>Recall:</strong> 0.89<br><br>※ 시연용 고정값입니다. 실제 학습 모델 연동 시 교체됩니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 2: 환자 차트 -->
+  <div id="chart" class="tab-content">
+    <div class="card">
+      <h3>📋 환자 상세 차트 (EMR)</h3>
+      <p class="note" id="chartPatientLabel" style="margin-top:0">-</p>
+      <div class="safety-banner" id="chartSafetyBanner" style="margin:0 0 12px"></div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>검사항목</th><th>값</th><th>정상범위</th><th>상태</th></tr></thead>
+          <tbody id="chartTableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">환자를 선택하세요</td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:20px;">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">최근 투여 약물</h4>
+        <div id="medicationList" style="display:grid;gap:8px;"></div>
+      </div>
+      <div style="margin-top:20px;">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">시술 기록</h4>
+        <div id="procedureList" style="display:grid;gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 3: 이력 조회 -->
+  <div id="history" class="tab-content">
+    <div class="card">
+      <h3>📊 7일 위험도 추이</h3>
+      <p class="note" id="historyPatientLabel" style="margin-top:0">-</p>
+      <div class="chart-wrap" style="height:220px;margin-bottom:16px;"><svg id="historySvg" viewBox="0 0 900 220" preserveAspectRatio="none" role="img" aria-label="7일 위험도 추이"></svg></div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>날짜</th><th>위험도</th><th>상태</th><th>주요 지표</th></tr></thead>
+          <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">환자를 선택하세요</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <h3>🕒 위험도 변화 타임라인 (이번 세션)</h3>
+      <p class="note" style="margin-top:0">생체신호 변화가 위험도에 영향을 준 시점을 실시간으로 기록합니다.</p>
+      <div id="riskTimelineList" class="timeline-list"><div class="empty">아직 기록된 변화가 없습니다.</div></div>
+    </div>
+  </div>
+
+  <!-- 탭 4: 메시지 -->
+  <div id="messages" class="tab-content">
+    <div class="card">
+      <h3>💬 의료진 실시간 메시지</h3>
+      <p class="note" style="margin-top:0">보내는 사람: <strong id="msgSenderLabel">-</strong> (로그인 계정 기준)</p>
+      <p class="note" id="msgScopeNote" style="display:none;margin-top:0"></p>
+      <div style="max-height:350px;overflow-y:auto;margin-bottom:12px;" id="messageList"><div class="empty">아직 주고받은 메시지가 없습니다. 아래에 입력해 시작하세요.</div></div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="messageInput" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter')sendMessage()" style="flex:1;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px;border-radius:6px;font-size:12px;" />
+        <button class="btn btn-primary" onclick="sendMessage()">전송</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭 5: 요약 & 보고서 -->
+  <div id="summary" class="tab-content">
+    <div class="card">
+      <h3>📑 일일 모니터링 보고서</h3>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+        <div class="subcard"><p style="margin:0 0 4px;font-size:11px;color:var(--muted);">생성 일시</p><p style="margin:0;font-size:13px;font-weight:700;" id="reportDate">-</p></div>
+        <div class="subcard"><p style="margin:0 0 4px;font-size:11px;color:var(--muted);">위험</p><p style="margin:0;font-size:13px;font-weight:700;color:var(--red);" id="countDanger">-</p></div>
+        <div class="subcard"><p style="margin:0 0 4px;font-size:11px;color:var(--muted);">주의</p><p style="margin:0;font-size:13px;font-weight:700;color:var(--amber);" id="countWarn">-</p></div>
+        <div class="subcard"><p style="margin:0 0 4px;font-size:11px;color:var(--muted);">정상</p><p style="margin:0;font-size:13px;font-weight:700;color:var(--green);" id="countOk">-</p></div>
+      </div>
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;"><span id="summaryScopeLabel">환자 요약 (전체 10명)</span></h4>
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th>환자</th><th>병실</th><th>위험도</th><th>상태</th><th>변화</th><th>주요 원인</th></tr></thead>
+          <tbody id="reportSummaryBody"><tr><td colspan="6" style="text-align:center;padding:20px;">로딩 중...</td></tr></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn btn-primary" onclick="downloadReport()">📄 보고서 저장 (HTML)</button>
+        <button class="btn btn-ghost" onclick="downloadCsv()">📊 CSV 내보내기</button>
+        <button class="btn btn-ghost" onclick="window.print()">🖨️ 인쇄 / PDF로 저장</button>
+      </div>
+      <p class="note">인쇄 창에서 프린터를 "PDF로 저장"으로 선택하면 그대로 PDF가 됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 탭 6: 감시로그 -->
+  <div id="audit" class="tab-content">
+    <div class="card">
+      <div class="mini-title"><h3>📋 감시로그 (Audit Trail)</h3><button class="btn btn-ghost" onclick="downloadAudit()">로그 내보내기</button></div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead><tr><th style="width:110px">시간</th><th style="width:90px">의료진</th><th style="width:90px">구분</th><th>조치</th></tr></thead>
+          <tbody id="auditTableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">기록 없음</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">🏥 건양대 의료IT공학과 | 바이탈 사인 v5.5.0 | 하유진 · 이아연 · 심가원</div>
+</div>
+
+<!-- 미확인 위험 알람 모아보기 모달 -->
+<div id="unackModalOverlay" class="modal-overlay" style="display:none" onclick="if(event.target===this) closeUnackModal()">
+  <div class="modal-box">
+    <div class="modal-head"><h3>🔴 미확인 위험 알람 전체 보기</h3><button class="btn btn-ghost" onclick="closeUnackModal()">닫기 ✕</button></div>
+    <p class="note" style="margin-top:0">모든 환자를 통틀어 아직 확인 처리되지 않은 위험(danger) 등급 알람입니다. 한 환자에게서 여러 지표가 동시에 위험 기준을 넘으면 여러 건으로 집계됩니다.</p>
+    <div id="unackModalList" class="unack-modal-list"></div>
+  </div>
+</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script>
+/* ============ Firebase 실시간 공용 저장소 ============
+   같은 브라우저(localStorage)가 아니라, 진짜로 여러 노트북 간에
+   감시로그를 실시간으로 공유하기 위한 연결부입니다. */
+const firebaseConfig = {
+  apiKey: "AIzaSyD8LnyjhUJkKZJijQ-DVte11kB4cYOEK1I",
+  authDomain: "seed-d97d6.firebaseapp.com",
+  databaseURL: "https://seed-d97d6-default-rtdb.firebaseio.com",
+  projectId: "seed-d97d6",
+  storageBucket: "seed-d97d6.firebasestorage.app",
+  messagingSenderId: "1088837535584",
+  appId: "1:1088837535584:web:8b59dd4c1e7e97d91c8005"
+};
+let fbDb = null, fbAuth = null, fbReady = false;
+try {
+  firebase.initializeApp(firebaseConfig);
+  fbDb = firebase.database();
+  fbAuth = firebase.auth();
+  fbReady = true;
+} catch (e) {
+  console.warn('Firebase 연결 실패 — 이 브라우저 안에서만 기록됩니다.', e);
+  fbReady = false;
+}
+
+/* ============ 연결 상태 표시 (화면에 실시간으로 표시) ============
+   fbReady는 SDK 초기화 성공 여부일 뿐, 실제 서버 연결과는 다릅니다.
+   Firebase 전용 경로 .info/connected 로 진짜 연결 상태를 실시간 감시합니다. */
+function setFbStatus(text, cls) {
+  ['fbStatusIndicator', 'fbStatusIndicatorLogin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = text; el.className = `fb-status ${cls}`; }
+  });
+}
+function watchFirebaseConnection() {
+  const paint = () => {
+    if (!document.getElementById('fbStatusIndicatorLogin') && !document.getElementById('fbStatusIndicator')) { setTimeout(paint, 300); return; }
+    if (!fbReady || !fbDb) { setFbStatus('🔴 로컬 저장 모드 (Firebase 미연결)', 'fail'); return; }
+    setFbStatus('🟡 Firebase 연결 확인 중...', 'warn');
+    fbDb.ref('.info/connected').on('value', snap => {
+      if (snap.val() === true) setFbStatus('🟢 실시간 동기화 중 (Firebase 연결됨)', 'ok');
+      else setFbStatus('🟡 Firebase 재연결 중...', 'warn');
+    });
+  };
+  paint();
+}
+watchFirebaseConnection();
+</script>
+<script>
+/* ============ 기준값 ============ */
+const ranges = {temperature: [36, 37.5], heartRate: [60, 100], respRate: [12, 20], sysBloodPress: [90, 140], spO2: [95, 100]};
+const labels = {risk: '위험도', temperature: '체온', heartRate: '심박수', respRate: '호흡수', sysBloodPress: '수축기 혈압', spO2: 'SpO₂'};
+const units = {risk: '%', temperature: '°C', heartRate: ' bpm', respRate: '/min', sysBloodPress: ' mmHg', spO2: '%'};
+
+/* base: 생체신호(dbp = 이완기 혈압, gcs = 의식) · labs: 최근 검사(ago = 몇 분 전 채취)
+   weight(kg) · allergies · code(연명의료) · flags(주의 병력) · doc/nurse = Firebase에 배정 기록이 없을 때의 기본 담당 */
+const patients = [
+  {id: 'P001', name: '김철수', age: 68, gender: '남', room: 'ICU-101', dx: '복막염 수술 후', base: {temperature: 38.1, heartRate: 106, respRate: 23, sysBloodPress: 101, dbp: 58, spO2: 94, gcs: 15}, labs: {lactate: 2.6, wbc: 14.8, cr: 1.3, plt: 182, bili: 1.1, ago: 90}, weight: 72, allergies: [], code: 'Full', flags: [], doc: '하유진', nurse: '정하늘'},
+  {id: 'P002', name: '이영희', age: 72, gender: '여', room: 'ICU-102', dx: '폐렴 회복기', base: {temperature: 37.0, heartRate: 82, respRate: 17, sysBloodPress: 124, dbp: 72, spO2: 97, gcs: 15}, labs: {lactate: 1.1, wbc: 8.9, cr: 0.9, plt: 245, bili: 0.6, ago: 300}, weight: 54, allergies: [], code: 'DNR', flags: ['만성 심부전'], doc: '심가원', nurse: '김보라'},
+  {id: 'P003', name: '박민준', age: 55, gender: '남', room: 'ICU-103', dx: '요로감염 · 패혈성 쇼크 의심', base: {temperature: 39.0, heartRate: 124, respRate: 29, sysBloodPress: 82, dbp: 48, spO2: 91, gcs: 13}, labs: {lactate: 4.2, wbc: 18.6, cr: 2.1, plt: 98, bili: 1.8, ago: 60}, weight: 80, allergies: ['설폰아마이드계'], code: 'Full', flags: ['당뇨', '만성 신장질환'], doc: '이아연', nurse: '정하늘'},
+  {id: 'P004', name: '최수진', age: 64, gender: '여', room: 'ICU-104', dx: '담낭절제술 후', base: {temperature: 36.7, heartRate: 76, respRate: 16, sysBloodPress: 132, dbp: 78, spO2: 98, gcs: 15}, labs: {lactate: 0.9, wbc: 7.2, cr: 0.8, plt: 260, bili: 0.9, ago: 420}, weight: 61, allergies: [], code: 'Full', flags: [], doc: '심가원', nurse: '최은서'},
+  {id: 'P005', name: '손재훈', age: 71, gender: '남', room: 'ICU-105', dx: '흡인성 폐렴', base: {temperature: 38.4, heartRate: 112, respRate: 25, sysBloodPress: 96, dbp: 56, spO2: 93, gcs: 15}, labs: {lactate: 2.2, wbc: 13.1, cr: 1.0, plt: 210, bili: 0.7, ago: 120}, weight: 66, allergies: ['요오드 조영제'], code: 'Full', flags: [], doc: '하유진', nurse: '김보라'},
+  {id: 'P006', name: '정미라', age: 59, gender: '여', room: 'ICU-106', dx: '연조직염', base: {temperature: 37.4, heartRate: 91, respRate: 21, sysBloodPress: 116, dbp: 70, spO2: 96, gcs: 15}, labs: {lactate: 1.4, wbc: 11.2, cr: 0.9, plt: 230, bili: 0.5, ago: 240}, weight: 70, allergies: ['페니실린계'], code: 'Full', flags: ['당뇨'], doc: '심가원', nurse: '최은서'},
+  {id: 'P007', name: '강두영', age: 66, gender: '남', room: 'ICU-107', dx: '장천공 수술 후', base: {temperature: 38.6, heartRate: 118, respRate: 27, sysBloodPress: 90, dbp: 52, spO2: 92, gcs: 15}, labs: {lactate: 3.1, wbc: 16.4, cr: 1.6, plt: 132, bili: 2.3, ago: 75}, weight: 77, allergies: [], code: 'Full', flags: ['스테로이드 복용 (면역저하)'], doc: '이아연', nurse: '정하늘'},
+  {id: 'P008', name: '임순희', age: 73, gender: '여', room: 'ICU-108', dx: '고관절 수술 후', base: {temperature: 36.9, heartRate: 79, respRate: 18, sysBloodPress: 126, dbp: 74, spO2: 97, gcs: 15}, labs: {lactate: 1.0, wbc: 7.8, cr: 0.8, plt: 198, bili: 0.6, ago: 480}, weight: 52, allergies: ['라텍스'], code: 'Full', flags: [], doc: '심가원', nurse: '김보라'},
+  {id: 'P009', name: '조형호', age: 61, gender: '남', room: 'ICU-109', dx: '급성 신우신염', base: {temperature: 38.0, heartRate: 104, respRate: 24, sysBloodPress: 104, dbp: 62, spO2: 94, gcs: 15}, labs: {lactate: 2.1, wbc: 13.9, cr: 1.4, plt: 176, bili: 0.8, ago: 150}, weight: 74, allergies: [], code: 'Full', flags: ['당뇨'], doc: '하유진', nurse: '최은서'},
+  {id: 'P010', name: '유소영', age: 58, gender: '여', room: 'ICU-110', dx: '수술 후 관찰', base: {temperature: 36.6, heartRate: 73, respRate: 15, sysBloodPress: 129, dbp: 80, spO2: 99, gcs: 15}, labs: {lactate: 0.8, wbc: 6.5, cr: 0.7, plt: 280, bili: 0.5, ago: 360}, weight: 58, allergies: ['NSAIDs'], code: 'Full', flags: [], doc: '이아연', nurse: '최은서'}
+];
+
+/* 환자별 EMR 목업 (하드코딩 1종 → 환자별로 분리) */
+const emr = {
+  P001: {meds: [['메로페넴', '1g IV q8h', '2일차'], ['노르에피네프린', '0.05 µg/kg/min', '유지 중']], procs: [['09-13 21:10', '중심정맥관 삽입'], ['09-13 18:40', '혈액배양 2세트 채취']]},
+  P002: {meds: [['세프트리악손', '2g IV q24h', '5일차'], ['아세트아미노펜', '650mg PO PRN', '필요시']], procs: [['09-12 10:20', '흉부 X-ray']]},
+  P003: {meds: [['메로페넴', '1g IV q8h', '1일차'], ['반코마이신', '1g IV q12h', '1일차'], ['노르에피네프린', '0.20 µg/kg/min', '증량 중']], procs: [['09-14 06:05', '동맥관 삽입'], ['09-14 05:30', '젖산 재검 (4.2 mmol/L)']]},
+  P004: {meds: [['세파졸린', '1g IV q8h', '예방적'], ['트라마돌', '50mg IV PRN', '필요시']], procs: [['09-11 14:00', '복강경 담낭절제술']]},
+  P005: {meds: [['피페라실린/타조박탐', '4.5g IV q6h', '3일차'], ['산소 요법', '비강 캐뉼라 3L/min', '유지 중']], procs: [['09-13 08:15', '기관지 흡인'], ['09-12 22:00', '객담 배양']]},
+  P006: {meds: [['클린다마이신', '600mg IV q8h', '2일차']], procs: [['09-13 11:30', '창상 소독 및 배액']]},
+  P007: {meds: [['메로페넴', '1g IV q8h', '2일차'], ['수액', '생리식염수 500mL 볼루스', '투여 완료']], procs: [['09-13 03:20', '응급 개복술'], ['09-13 02:40', '혈액배양 2세트 채취']]},
+  P008: {meds: [['세파졸린', '1g IV q8h', '예방적'], ['에녹사파린', '40mg SC q24h', '혈전 예방']], procs: [['09-10 09:00', '고관절 전치환술']]},
+  P009: {meds: [['세프타지딤', '2g IV q8h', '2일차'], ['수액', '하트만 용액 유지', '진행 중']], procs: [['09-13 16:45', '요배양 채취'], ['09-13 16:00', '신장 초음파']]},
+  P010: {meds: [['아세트아미노펜', '650mg PO PRN', '필요시']], procs: [['09-12 13:00', '수술 후 경과 관찰']]}
+};
+
+/* 환자별로 이미 공유되어 있는 동료 의료진 피드백 (초기 데이터) */
+const seedFeedback = {
+  P001: [['오세훈', '감염내과', '-3시간', '혈액배양 결과 대기 중. 그람음성 의심되어 메로페넴 유지 권고합니다.'], ['정하늘', 'ICU 간호사', '-1시간', '소변량 시간당 30mL 이하로 떨어짐. 수액 반응 확인 필요합니다.']],
+  P002: [['하유진', '전공의', '-5시간', '해열제 투여 후 체온 안정. 항생제 5일차 종료 시점 검토 부탁드립니다.']],
+  P003: [['이아연', '당직의', '-2시간', '젖산 4.2로 재상승. 승압제 증량했고 신장내과 협진 의뢰했습니다.'], ['오세훈', '감염내과', '-1시간', '요배양에서 그람음성 간균 확인. 항생제 스펙트럼 유지하겠습니다.'], ['정하늘', 'ICU 간호사', '-20분', '의식 수준 기면 상태로 변화. 즉시 확인 부탁드립니다.']],
+  P004: [['정하늘', 'ICU 간호사', '-4시간', '창상 부위 깨끗하고 배액량 감소. 특이사항 없습니다.']],
+  P005: [['하유진', '전공의', '-3시간', '흉부 X-ray상 우하엽 침윤 지속. 산소 요구량 변화 관찰 중입니다.']],
+  P006: [['오세훈', '감염내과', '-6시간', '연조직염 범위 축소 확인. 클린다마이신 유지 권고합니다.']],
+  P007: [['이아연', '당직의', '-1시간', '수술 후 복부 팽만 증가. 영상의학과 재판독 요청드렸습니다.'], ['정하늘', 'ICU 간호사', '-30분', '볼루스 후 혈압 90대 회복. 30분 간격 재측정 중입니다.']],
+  P008: [['하유진', '전공의', '-7시간', '보행 재활 시작 가능 상태. 재활의학과 협진 예정입니다.']],
+  P009: [['오세훈', '감염내과', '-2시간', '신우신염 호전 중이나 발열 지속. 48시간 내 재평가 권고합니다.']],
+  P010: [['정하늘', 'ICU 간호사', '-8시간', '활력징후 전부 정상 범위. 일반 병동 전실 검토 가능합니다.']]
+};
+
+let selectedPatientId = 'P001', chartMetric = 'risk', state = {}, messages = [], auditLog = [], autoTimer = null;
+let me = {name: '심가원', role: 'PM', sid: '26615031'};
+let fbSeq = 0;
+/* 서버 없이 같은 브라우저의 다른 탭/창과 피드백을 실시간 공유합니다 */
+const channel = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('vitalsign-feedback') : null;
+
+/* ============ 계정 ============
+   실제 인증은 Firebase Authentication(이메일/비밀번호)이 처리합니다.
+   여기 email은 화면에 노출되지 않는 내부 매핑용이며, 비밀번호는
+   Firebase 콘솔(Authentication > Users)에서 각자 설정한 값을 씁니다. */
+const ACCOUNTS = {
+  '하유진': {role: 'PM', sid: '26615053', email: 'hayujin@vitalsign.app'},
+  '이아연': {role: 'PM', sid: '26615038', email: 'leeayeon@vitalsign.app'},
+  '심가원': {role: 'PM', sid: '26615031', email: 'simgawon@vitalsign.app'}
+};
+const AUDIT_PATH = 'auditLog';
+const FEEDBACK_ROOT = 'feedback';         /* feedback/{patientId}/{pushKey} */
+const MESSAGES_PATH = 'messages';         /* messages/{pushKey} — 환자 무관 공통 채팅 */
+const INTERVENTION_ROOT = 'interventions'; /* interventions/{patientId}/{pushKey} — 의료진 조치 기록 */
+const ASSIGNMENT_ROOT = 'assignments';     /* assignments/{patientId} — 담당 의료진/간호사 */
+const NURSES = ['정하늘', '김보라', '최은서'];
+const INTERVENTION_LABELS = {call: '📞 담당 의료진 호출', test: '🧪 검사 요청', done: '✅ 처치 완료'};
+let auditListenerAttached = false, booted = false;
+let feedbackListenersAttached = false, messageListenerAttached = false;
+let interventionListenersAttached = false, assignmentListenerAttached = false;
+let alarmTickTimer = null;
+const BUNDLE_ROOT = 'bundles';            /* bundles/{patientId} — Hour-1 번들 시작 시각과 항목별 완료 기록 */
+const BUNDLE_WINDOW = 60 * 60000;
+let bundleListenerAttached = false, bundleTickTimer = null;
+let viewMode = 'all';                     /* 'all' = 전체 환자, 'mine' = 로그인한 의료진이 담당 전공의로 지정된 환자만 */
+
+/* 로컬 저장(fallback) — Firebase 연결이 안 될 때만 사용 */
+const store = (() => {
+  let ok = false;
+  try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); ok = true; } catch (e) { ok = false; }
+  const mem = {};
+  return {
+    available: ok,
+    get(k) { try { return ok ? localStorage.getItem(k) : (mem[k] || null); } catch (e) { return null; } },
+    set(k, v) { try { ok ? localStorage.setItem(k, v) : (mem[k] = v); } catch (e) {} }
+  };
+})();
+
+/* 감시로그 한 건을 공용 데이터베이스에 실시간으로 기록 */
+function pushAuditEntry(entry) {
+  if (fbReady && fbDb) {
+    fbDb.ref(AUDIT_PATH).push(entry).catch(err => console.warn('Firebase 기록 실패', err));
+  } else {
+    // Firebase 연결 안 될 때는 이 브라우저 안에서만 남김
+    auditLog.push(entry);
+    if (auditLog.length > 300) auditLog.shift();
+    renderAuditTab();
+    store.set('vitalSign_auditLog', JSON.stringify(auditLog.slice(-300)));
+  }
+}
+
+/* 다른 노트북에서 남긴 기록이 생기는 즉시(실시간) 받아서 화면에 반영 */
+function startRealTimeSync() {
+  if (!fbReady || !fbDb || auditListenerAttached) return;
+  auditListenerAttached = true;
+  const ref = fbDb.ref(AUDIT_PATH).limitToLast(300);
+  ref.on('child_added', snap => {
+    const key = snap.key, val = snap.val();
+    if (!val || auditLog.some(l => l._key === key)) return;
+    auditLog.push({...val, _key: key});
+    if (auditLog.length > 300) auditLog.shift();
+    renderAuditTab();
+  });
+}
+function stopRealTimeSync() {
+  if (fbReady && fbDb) fbDb.ref(AUDIT_PATH).off('child_added');
+  auditListenerAttached = false;
+}
+
+/* ============ 피드백 실시간 공유 (다른 컴퓨터/브라우저 포함) ============ */
+function startFeedbackSync() {
+  if (!fbReady || !fbDb || feedbackListenersAttached) return;
+  feedbackListenersAttached = true;
+  patients.forEach(p => {
+    const ref = fbDb.ref(`${FEEDBACK_ROOT}/${p.id}`).limitToLast(200);
+    ref.once('value').then(snap => {
+      const list = state[p.id].feedback;
+      snap.forEach(child => {
+        const key = child.key, val = child.val();
+        if (val && !list.some(f => f.id === key)) {
+          list.push({id: key, author: val.author, role: val.role, time: val.time, ts: val.ts || tsFromPushKey(key), text: val.text, unread: false});
+        }
+      });
+      if (p.id === selectedPatientId) renderFeedback();
+      /* 초기 로딩 이후 새로 올라오는 피드백만 실시간 반영 */
+      ref.on('child_added', s2 => {
+        const key = s2.key, val = s2.val();
+        const list2 = state[p.id].feedback;
+        if (!val || list2.some(f => f.id === key)) return;
+        list2.push({id: key, author: val.author, role: val.role, time: val.time, ts: val.ts || tsFromPushKey(key), text: val.text, unread: val.author !== me.name});
+        if (p.id === selectedPatientId) renderFeedback();
+        if (val.author !== me.name) log('수신', `${p.name} 피드백 수신 — ${val.author}`);
+      });
+      ref.on('child_removed', s3 => {
+        const key = s3.key;
+        const list3 = state[p.id].feedback;
+        const i = list3.findIndex(f => f.id === key);
+        if (i >= 0) { list3.splice(i, 1); if (p.id === selectedPatientId) renderFeedback(); }
+      });
+    }).catch(err => console.warn('Firebase 피드백 초기 로드 실패', err));
+  });
+}
+function stopFeedbackSync() {
+  if (!fbReady || !fbDb) return;
+  patients.forEach(p => fbDb.ref(`${FEEDBACK_ROOT}/${p.id}`).off());
+  feedbackListenersAttached = false;
+}
+
+/* ============ 메시지 실시간 공유 (다른 컴퓨터/브라우저 포함) ============ */
+function startMessageSync() {
+  if (!fbReady || !fbDb || messageListenerAttached) return;
+  messageListenerAttached = true;
+  const ref = fbDb.ref(MESSAGES_PATH).limitToLast(200);
+  ref.once('value').then(snap => {
+    messages = [];
+    snap.forEach(child => {
+      const key = child.key, val = child.val();
+      if (val) messages.push({_key: key, doctor: val.doctor, time: val.time, ts: val.ts || tsFromPushKey(key), text: val.text, patient: val.patient});
+    });
+    renderMessages();
+    ref.on('child_added', s2 => {
+      const key = s2.key, val = s2.val();
+      if (!val || messages.some(m => m._key === key)) return;
+      messages.push({_key: key, doctor: val.doctor, time: val.time, ts: val.ts || tsFromPushKey(key), text: val.text, patient: val.patient});
+      renderMessages();
+    });
+  }).catch(err => console.warn('Firebase 메시지 초기 로드 실패', err));
+}
+function stopMessageSync() {
+  if (fbReady && fbDb) fbDb.ref(MESSAGES_PATH).off();
+  messageListenerAttached = false;
+}
+
+/* ============ 로그인 ============
+   Firebase Authentication(이메일/비밀번호)으로 실제 인증을 받습니다.
+   화면에는 여전히 이름 선택 + 비밀번호만 보이고, 이메일 변환은
+   내부적으로 ACCOUNTS 매핑을 거쳐 자동으로 처리됩니다. */
+function loginUser() {
+  const name = document.getElementById('doctorSelect').value;
+  const pw = document.getElementById('passwordInput').value;
+  const err = document.getElementById('loginError');
+  const btn = document.querySelector('.login-submit');
+  if (!name) { err.textContent = '의료진을 선택하세요.'; return; }
+  if (!pw) { err.textContent = '비밀번호를 입력하세요.'; return; }
+  err.textContent = '';
+
+  if (!fbReady || !fbAuth) {
+    err.textContent = 'Firebase 인증 서버에 연결할 수 없습니다. 네트워크 상태를 확인하세요.';
+    return;
+  }
+
+  const email = ACCOUNTS[name].email;
+  if (btn) { btn.disabled = true; btn.textContent = '로그인 중...'; }
+  fbAuth.signInWithEmailAndPassword(email, pw)
+    .then(() => {
+      err.textContent = '';
+      me = {name, role: ACCOUNTS[name].role, sid: ACCOUNTS[name].sid};
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      document.getElementById('userInfo').textContent = `${me.name} · ${me.role} (${me.sid}) · 로그인됨`;
+      const lbl = document.getElementById('msgSenderLabel');
+      if (lbl) lbl.textContent = `${me.name} · ${me.role}`;
+      viewMode = store.get('vitalSign_viewMode_' + name) === 'mine' ? 'mine' : 'all';
+      if (!booted) { init(); booted = true; } else { renderAll(); }
+      startRealTimeSync();
+      startFeedbackSync();
+      startMessageSync();
+      startInterventionSync();
+      startAssignmentSync();
+      startBundleSync();
+      log('인증', '로그인');
+    })
+    .catch(e => {
+      const map = {
+        'auth/wrong-password': '비밀번호가 올바르지 않습니다. 다시 입력하세요.',
+        'auth/invalid-credential': '비밀번호가 올바르지 않습니다. 다시 입력하세요.',
+        'auth/user-not-found': '등록되지 않은 계정입니다. 관리자에게 문의하세요.',
+        'auth/too-many-requests': '로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.',
+        'auth/network-request-failed': '네트워크 연결을 확인하세요.'
+      };
+      err.textContent = map[e.code] || `로그인에 실패했습니다. (${e.code || e.message})`;
+      document.getElementById('passwordInput').select();
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = '로그인'; }
+    });
+}
+
+function logout() {
+  if (!confirm('로그아웃하시겠습니까? 이번 세션에 입력한 피드백과 메시지는 화면에 그대로 남습니다.')) return;
+  log('인증', '로그아웃');
+  stopRealTimeSync();
+  stopFeedbackSync();
+  stopMessageSync();
+  stopInterventionSync();
+  stopAssignmentSync();
+  stopBundleSync();
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  document.getElementById('autoRefresh').checked = false;
+  if (fbReady && fbAuth) fbAuth.signOut().catch(e => console.warn('Firebase 로그아웃 실패', e));
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('doctorSelect').value = '';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('loginError').textContent = '';
+}
+
+/* ============ 유틸 ============ */
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function nowT() { return new Date().toLocaleTimeString('ko-KR'); }
+/* 날짜 + 시간 표시: 2026.09.16 오후 3:12:05 */
+function fmtDT(ts) {
+  const d = new Date(ts);
+  if (isNaN(d)) return '';
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} ${d.toLocaleTimeString('ko-KR')}`;
+}
+/* ts가 없는 예전 기록은 Firebase push 키에 들어 있는 생성 시각을 복원 */
+function tsFromPushKey(key) {
+  const CH = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  if (typeof key !== 'string' || key.length < 8) return null;
+  let t = 0;
+  for (let i = 0; i < 8; i++) { const v = CH.indexOf(key[i]); if (v < 0) return null; t = t * 64 + v; }
+  return (t > 1.4e12 && t < Date.now() + 864e5) ? t : null;
+}
+/* '-3시간', '-20분' 같은 상대 시각을 실제 시각으로 변환 */
+function tsFromRelative(str) {
+  const m = /^-(\d+)(시간|분)$/.exec(str || '');
+  return m ? Date.now() - Number(m[1]) * (m[2] === '시간' ? 3600e3 : 60e3) : null;
+}
+function itemDT(it, key) {
+  const ts = it.ts || tsFromPushKey(key);
+  return ts ? fmtDT(ts) : (it.time || '');
+}
+function mapOf(v) { return Math.round((v.sysBloodPress + 2 * v.dbp) / 3); }
+function agoText(ts) {
+  if (!ts) return '-';
+  const m = Math.max(0, Math.floor((Date.now() - ts) / 60000));
+  if (m < 1) return '방금';
+  if (m < 60) return `${m}분 전`;
+  return `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''} 전`;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function log(kind, action) {
+  const entry = {time: nowT(), user: me.name, kind, action, _ts: Date.now()};
+  pushAuditEntry(entry);
+}
+
+/* 환자 ID 기반 고정 난수 — 새로고침해도 같은 환자는 같은 이력이 나옵니다 */
+function seeded(seed) { let x = seed; return function () { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648; }; }
+function seedOf(id) { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 100000; return h + 7; }
+
+function jitter(base, key) { const spread = {temperature: 0.25, heartRate: 6, respRate: 3, sysBloodPress: 8, dbp: 5, spO2: 2}[key]; let v = base + (Math.random() - 0.5) * spread * 2; return key === 'temperature' ? Math.round(v * 10) / 10 : Math.round(clamp(v, key === 'spO2' ? 70 : 0, key === 'spO2' ? 100 : 999)); }
+function calcRisk(v, lab) { lab = lab || {}; let s = 5; if (v.temperature >= 38) s += 18; if (v.temperature < 36) s += 12; if (v.heartRate > 100) s += 18; if (v.heartRate > 120) s += 8; if (v.respRate > 20) s += 18; if (v.respRate >= 25) s += 8; if (v.sysBloodPress < 100) s += 18; if (v.sysBloodPress < 90) s += 10; if (v.spO2 < 95) s += 12; if (v.spO2 < 92) s += 7; if (v.dbp != null && mapOf(v) < 65) s += 10; if (lab.lactate >= 2) s += 8; if (lab.lactate >= 4) s += 10; if (v.gcs != null && v.gcs < 15) s += 12; if (lab.wbc > 12 || lab.wbc < 4) s += 6; return clamp(Math.round(s), 0, 100); }
+function getStatus(score) { return score >= 70 ? '위험' : score >= 45 ? '주의' : '정상'; }
+function statusClass(s) { return s === '위험' ? 'danger' : s === '주의' ? 'warning' : 'success'; }
+function statusColor(s) { return s === '위험' ? 'var(--red)' : s === '주의' ? 'var(--amber)' : 'var(--green)'; }
+
+/* 현재값에서 과거 방향으로 역산 — 마지막 점(23번)이 항상 현재 생체신호와 일치합니다 */
+function generateTrend(baseVitals, lab) {
+  const keys = ['temperature', 'heartRate', 'respRate', 'sysBloodPress', 'dbp', 'spO2'];
+  const out = [];
+  let v = {...baseVitals};
+  for (let i = 22; i >= 0; i--) {
+    const nv = {};
+    keys.forEach(k => { nv[k] = jitter(v[k] + (baseVitals[k] - v[k]) * 0.25, k); });
+    v = nv;
+    out.unshift({...v, gcs: baseVitals.gcs, risk: calcRisk({...v, gcs: baseVitals.gcs}, lab)});
+  }
+  out.push({...baseVitals, risk: calcRisk(baseVitals, lab)});
+  return out;
+}
+
+/* 7일 이력 — 환자별 고정 시드 */
+function generateHistory(p, currentRisk) {
+  const rnd = seeded(seedOf(p.id));
+  const drivers = ['체온 상승', '심박수 증가', '호흡수 증가', '혈압 저하', 'SpO₂ 저하', '백혈구 수치 변동', '젖산 상승'];
+  const out = []; let r = currentRisk;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    out.push({date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, risk: clamp(Math.round(r), 5, 100), driver: drivers[Math.floor(rnd() * drivers.length)]});
+    r = r - (rnd() * 9 + 1);
+  }
+  return out;
+}
+
+/* ============ 초기화 ============ */
+function init() {
+  patients.forEach(p => {
+    const vitals = {...p.base};
+    const labs = {...p.labs, ts: Date.now() - p.labs.ago * 60000};
+    const risk = calcRisk(vitals, labs);
+    const trend = generateTrend(vitals, labs);
+    state[p.id] = {vitals, prevVitals: {...vitals}, risk, prevRisk: clamp(trend[trend.length - 2] ? trend[trend.length - 2].risk : risk, 0, 100), trend, labs, feedback: [], alarms: [], interventions: [], assignedDoctor: p.doc || '', assignedNurse: p.nurse || '', riskTimeline: [], bundle: emptyBundle()};
+    state[p.id].history = generateHistory(p, risk);
+    state[p.id].feedback = (seedFeedback[p.id] || []).map(f => ({id: 'seed-' + p.id + '-' + (fbSeq++), author: f[0], role: f[1], time: f[2], ts: tsFromRelative(f[2]), text: f[3], own: false, unread: false}));
+    state[p.id].riskTimeline.push({time: nowT(), risk, driver: reasonsFor(vitals, labs)[0]});
+    evaluateAlarms(p.id, true);
+  });
+  patients.forEach(p => maybeAutoStartBundle(p.id));
+  if (!bundleTickTimer) bundleTickTimer = setInterval(tickBundles, 1000);
+  if (channel) channel.onmessage = e => receiveFeedback(e.data);
+  updateTime();
+  log('시스템', '대시보드 시작');
+  if (!alarmTickTimer) alarmTickTimer = setInterval(() => { if (document.getElementById('alarmList')) renderAlarms(); }, 30000);
+  renderAll();
+}
+
+/* ============ 탭 ============ */
+function switchTab(tabName, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  if (btn) btn.classList.add('active');
+  renderAll();
+  log('조회', `${tabName} 탭 열기`);
+}
+
+/* ============ 환자 리스트 ============ */
+function renderPatientList() {
+  let list = [...visiblePatients()];
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  if (q) list = list.filter(p => (p.name + p.room + p.id).toLowerCase().includes(q));
+  const sf = document.getElementById('statusFilterSelect').value || '전체';
+  if (sf !== '전체') list = list.filter(p => getStatus(state[p.id].risk) === sf);
+  const mode = document.getElementById('sortSelect').value || 'risk';
+  if (mode === 'risk') list.sort((a, b) => state[b.id].risk - state[a.id].risk);
+  else if (mode === 'rise') list.sort((a, b) => (state[b.id].risk - state[b.id].prevRisk) - (state[a.id].risk - state[a.id].prevRisk));
+  else if (mode === 'room') list.sort((a, b) => a.room.localeCompare(b.room));
+
+  const el = document.getElementById('patientList');
+  if (!list.length) { el.innerHTML = `<div class="empty">${viewMode === 'mine' && !visiblePatients().length ? '담당으로 지정된 환자가 없습니다.' : '조건에 맞는 환자가 없습니다. 검색어나 필터를 바꿔보세요.'}</div>`; return; }
+  el.innerHTML = list.map(p => {
+    const s = state[p.id], status = getStatus(s.risk), rise = s.risk - s.prevRisk;
+    const docTag = s.assignedDoctor ? ` · 담당 ${esc(s.assignedDoctor)}` : ' · 담당의 미지정';
+    const bs = bundleStatus(p.id);
+    const bChip = bs.started && !bs.complete ? `<span class="bundle-chip ${bs.elapsed > BUNDLE_WINDOW ? 'over' : ''}" data-pid="${p.id}">${bundleChipText(bs)}</span>` : '';
+    return `<button class="patient-button ${p.id === selectedPatientId ? 'active' : ''}" onclick="selectPatient('${p.id}')"><div class="patient-top"><span class="patient-name">${p.name}</span><span><span class="badge ${statusClass(status)}">${status}</span>${rise >= 8 ? '<span class="trend-up">▲ 급상승</span>' : ''}${bChip}</span></div><div class="patient-info">${p.room} · ${p.age}세 · 위험도 ${s.risk}%${docTag}${p.code === 'DNR' ? ' · DNR' : ''}</div></button>`;
+  }).join('');
+}
+
+/* ============ 메인 대시보드 ============ */
+function renderDashboard() {
+  const p = patients.find(x => x.id === selectedPatientId);
+  if (!p) return;
+  const s = state[p.id], v = s.vitals, status = getStatus(s.risk), diff = s.risk - s.prevRisk;
+
+  document.getElementById('patientName').textContent = `${p.name} · ${p.room}`;
+  document.getElementById('patientInfo').textContent = `${p.age}세 · ${p.gender} · ${p.dx} · 환자 ID ${p.id}`;
+  document.getElementById('riskScore').textContent = s.risk;
+  document.getElementById('riskScore').style.color = statusColor(status);
+  document.getElementById('scoreChange').textContent = `이전 대비 ${diff >= 0 ? '+' : ''}${diff}%`;
+  document.getElementById('scoreChange').style.color = diff > 0 ? 'var(--red)' : diff < 0 ? 'var(--green)' : 'var(--muted)';
+
+  const ind = document.getElementById('statusIndicator');
+  ind.textContent = `상태: ${status}`;
+  ind.className = `status-indicator ${statusClass(status)}`;
+
+  const pb = document.getElementById('priorityBadge');
+  pb.textContent = diff >= 8 ? '급격한 상승' : '모니터링';
+  pb.className = `badge ${diff >= 8 ? 'danger' : statusClass(status)}`;
+
+  document.getElementById('safetyBanner').innerHTML = safetyChips(p);
+  document.getElementById('reasonList').innerHTML = reasonsFor(v, s.labs).slice(0, 4).map(x => `<li>${x}</li>`).join('');
+
+  if (status === '위험') {
+    document.getElementById('guideBox').innerHTML = '<strong>🔴 위험 단계 — 의료진 즉시 확인 필요</strong><p>생체신호 재확인 및 담당 의료진 보고를 권고합니다.</p>';
+    document.getElementById('actionBox').innerHTML = '<h4>🚨 권장 조치 — 즉시 개입 필요</h4><ul><li>아래 Hour-1 번들을 1시간 안에 진행 (혈액배양 → 항생제 순서)</li><li>평균동맥압(MAP) 65 mmHg 이상 유지</li><li>의식 수준과 소변량 변화 관찰</li><li>담당 전공의 즉시 보고</li></ul>';
+    document.getElementById('actionBox').className = 'action-box danger';
+  } else if (status === '주의') {
+    document.getElementById('guideBox').innerHTML = '<strong>🟡 주의 단계 — 관찰 강화</strong><p>생체신호 변화를 면밀히 관찰하세요.</p>';
+    document.getElementById('actionBox').innerHTML = '<h4>⚠️ 권장 조치 — 관찰 강화 필요</h4><ul><li>활력징후 15~30분 간격 재측정</li><li>혈액검사 오더 고려</li><li>수액 공급 상태 점검</li><li>환자 상태 지속 관찰</li></ul>';
+    document.getElementById('actionBox').className = 'action-box warning';
+  } else {
+    document.getElementById('guideBox').innerHTML = '<strong>🟢 정상 단계 — 지속 모니터링</strong><p>현재 비교적 안정적입니다.</p>';
+    document.getElementById('actionBox').innerHTML = '<h4>✅ 권장 조치 — 정기 모니터링</h4><ul><li>4시간 간격 정기 측정</li><li>특이사항 발생 시 즉시 재평가</li></ul>';
+    document.getElementById('actionBox').className = 'action-box success';
+  }
+
+  renderBundle();
+  renderVitals(s);
+  renderShap(v, s.labs);
+  renderChartTabs();
+  drawTrendChart();
+  renderAlarms();
+  renderFeedback();
+  renderInterventions();
+  renderAssignment();
+  renderAiSummaryBox(p.id);
+}
+
+/* ============ 📋 자동 요약 (규칙 기반, 외부 API 없음) ============ */
+const aiSummaryCache = {};
+
+function renderAiSummaryBox(patientId) {
+  const box = document.getElementById('aiSummaryBox');
+  const btn = document.getElementById('aiSummaryBtn');
+  if (!box) return;
+  const cached = aiSummaryCache[patientId];
+  if (cached) {
+    box.className = 'ai-summary-box';
+    box.innerHTML = escapeHtml(cached.text).replace(/\n/g, '<br>') + `<div class="ai-summary-meta">생성 시각 ${cached.time} · 규칙 기반 자동 요약이며 임상 판단을 대체하지 않습니다.</div>`;
+    btn.textContent = '요약 다시 생성';
+  } else {
+    box.className = 'ai-summary-box';
+    box.innerHTML = '<span style="color:var(--muted)">아직 생성된 요약이 없습니다. 위 버튼을 눌러 이 환자의 최신 데이터를 요약해보세요.</span>';
+    btn.textContent = '요약 생성';
+  }
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function buildRuleBasedSummary(p, s) {
+  const v = s.vitals, lab = s.labs || {};
+  const status = getStatus(s.risk);
+  const diff = s.risk - s.prevRisk;
+  const reasons = reasonsFor(v, lab);
+  const stable = reasons.length === 1 && reasons[0] === '생체신호가 안정적';
+  const t = s.trend.map(x => x.risk);
+  const late = t.slice(-6).reduce((a, b) => a + b, 0) / 6;
+  const early = t.slice(-12, -6).reduce((a, b) => a + b, 0) / 6;
+  const slopePer6h = late - early;
+  const trendWord = slopePer6h > 3 ? '📈 상승 추세' : slopePer6h < -3 ? '📉 호전 추세' : '➡️ 큰 변화 없음';
+
+  const lines = [];
+  lines.push(`• 위험도 ${s.risk}% (${status}) — 직전 대비 ${diff >= 0 ? '+' : ''}${diff}%p, 최근 6시간 ${trendWord}`);
+  lines.push(stable ? `• 주요 이상 소견 없음 — 생체신호 안정적` : `• 주요 이상 소견: ${reasons.slice(0, 3).join(' · ')}`);
+  lines.push(`• 관찰 포인트: ${stable ? '현재 안정 상태 유지 여부 확인' : reasons[0]}`);
+  return lines.join('\n');
+}
+
+function generateAiSummary() {
+  const id = selectedPatientId;
+  const p = patients.find(x => x.id === id), s = state[id];
+  if (!p || !s) return;
+  const text = buildRuleBasedSummary(p, s);
+  aiSummaryCache[id] = { text, time: nowT() };
+  renderAiSummaryBox(id);
+  log('조치', `${id} 자동 요약 생성 (${me.name})`);
+}
+
+function reasonsFor(v, lab) {
+  lab = lab || {};
+  const r = [];
+  if (v.dbp != null && mapOf(v) < 65) r.push('평균동맥압(MAP) 저하 (' + mapOf(v) + ' mmHg)');
+  if (lab.lactate >= 4) r.push('젖산 크게 상승 (' + lab.lactate + ' mmol/L)');
+  else if (lab.lactate >= 2) r.push('젖산 상승 (' + lab.lactate + ' mmol/L)');
+  if (v.gcs != null && v.gcs < 15) r.push('의식 저하 (GCS ' + v.gcs + ')');
+  if (v.sysBloodPress < 90) r.push('수축기 혈압이 매우 낮음 (' + v.sysBloodPress + ' mmHg)');
+  else if (v.sysBloodPress < 100) r.push('수축기 혈압이 낮음 (' + v.sysBloodPress + ' mmHg)');
+  if (v.respRate > 20) r.push('호흡수가 증가 (' + v.respRate + '/min)');
+  if (v.heartRate > 100) r.push('심박수가 빠름 (' + v.heartRate + ' bpm)');
+  if (v.temperature >= 38) r.push('체온이 상승 (' + v.temperature + '°C)');
+  if (v.spO2 < 95) r.push('SpO₂가 낮음 (' + v.spO2 + '%)');
+  if (lab.wbc > 12 || lab.wbc < 4) r.push('백혈구 수치 이상 (' + lab.wbc + ' ×10³/µL)');
+  if (!r.length) r.push('생체신호가 안정적');
+  return r;
+}
+
+function renderVitals(s) {
+  const v = s.vitals, pv = s.prevVitals || v;
+  const defs = [['temperature', '체온'], ['heartRate', '심박'], ['respRate', '호흡'], ['sysBloodPress', 'SBP'], ['spO2', 'SpO₂']];
+  document.getElementById('vitalsGrid').innerHTML = defs.map(([k, l]) => {
+    const [lo, hi] = ranges[k], ab = v[k] < lo || v[k] > hi;
+    const d = Math.round((v[k] - pv[k]) * 10) / 10;
+    const up = k === 'spO2' || k === 'sysBloodPress' ? d < 0 : d > 0;
+    const dTxt = d === 0 ? '변화 없음' : `${d > 0 ? '▲' : '▼'} ${Math.abs(d)}${units[k].trim()}`;
+    return `<div class="vital-card ${ab ? 'abnormal' : ''}"><div class="vital-label">${l}</div><div class="vital-value">${v[k]}${units[k]}</div><div class="vital-delta" style="color:${d === 0 ? 'var(--muted)' : up ? 'var(--red)' : 'var(--green)'}">${dTxt}</div><div class="vital-range">범위 ${lo}–${hi}${units[k]}</div></div>`;
+  }).join('') + (() => {
+    const lab = s.labs || {}, map = mapOf(v), pmap = pv.dbp != null ? mapOf(pv) : map, dm = map - pmap;
+    const card = (label, value, abnormal, delta, deltaColor, range) => `<div class="vital-card ${abnormal ? 'abnormal' : ''}"><div class="vital-label">${label}</div><div class="vital-value">${value}</div><div class="vital-delta" style="color:${deltaColor}">${delta}</div><div class="vital-range">${range}</div></div>`;
+    return card('MAP', `${map} mmHg`, map < 65, dm === 0 ? '변화 없음' : `${dm > 0 ? '▲' : '▼'} ${Math.abs(dm)}mmHg`, dm === 0 ? 'var(--muted)' : dm < 0 ? 'var(--red)' : 'var(--green)', '목표 ≥65 mmHg')
+      + card('젖산', `${lab.lactate} mmol/L`, lab.lactate >= 2, `검사 ${agoText(lab.ts)}`, lab.lactate >= 4 ? 'var(--red)' : 'var(--muted)', '정상 <2.0 mmol/L')
+      + card('의식 (GCS)', `${v.gcs} / 15`, v.gcs < 15, v.gcs < 15 ? '의식 저하' : '명료', v.gcs < 15 ? 'var(--red)' : 'var(--muted)', '15 = 명료');
+  })();
+}
+
+function renderShap(v, lab) {
+  lab = lab || {};
+  const vals = [
+    ['젖산', lab.lactate >= 4 ? 24 : lab.lactate >= 2 ? 16 : 3],
+    ['MAP', mapOf(v) < 65 ? 22 : mapOf(v) < 70 ? 10 : 4],
+    ['의식', v.gcs < 15 ? 20 : 2],
+    ['혈압', v.sysBloodPress < 90 ? 28 : v.sysBloodPress < 100 ? 20 : 5],
+    ['호흡수', v.respRate >= 25 ? 26 : v.respRate > 20 ? 18 : 5],
+    ['심박수', v.heartRate > 120 ? 26 : v.heartRate > 100 ? 18 : 5],
+    ['체온', v.temperature >= 39 ? 22 : v.temperature >= 38 ? 18 : 4],
+    ['SpO₂', v.spO2 < 92 ? 19 : v.spO2 < 95 ? 12 : 3]
+  ].sort((a, b) => b[1] - a[1]);
+  const max = vals[0][1] || 1;
+  document.getElementById('shapAnalysis').innerHTML = vals.map(([n, val]) => `<div class="shap-row"><div>${n}</div><div class="bar-bg"><div class="bar-fill ${val >= 18 ? 'hot' : ''}" style="width:${Math.round(val / max * 100)}%"></div></div><div class="shap-val">${val}</div></div>`).join('');
+}
+
+/* ============ 24시간 추이 차트 (실제 SVG 렌더링) ============ */
+function renderChartTabs() {
+  const keys = ['risk', 'temperature', 'heartRate', 'respRate', 'sysBloodPress', 'spO2'];
+  document.getElementById('chartTabs').innerHTML = keys.map(k => `<button class="tab ${chartMetric === k ? 'active' : ''}" onclick="setMetric('${k}')">${labels[k]}</button>`).join('');
+}
+function setMetric(k) { chartMetric = k; renderChartTabs(); drawTrendChart(); }
+
+function drawTrendChart() {
+  const svg = document.getElementById('trendSvg');
+  const s = state[selectedPatientId];
+  if (!s) return;
+  const data = s.trend.map(t => t[chartMetric]);
+  const W = 900, H = 250, padL = 48, padR = 14, padT = 16, padB = 26;
+  let min = Math.min(...data), max = Math.max(...data);
+  if (chartMetric === 'risk') { min = 0; max = 100; } else {
+    if (max - min < 1) { max = max + 1; min = min - 1; }
+    const pad = (max - min) * 0.12; min -= pad; max += pad;
+  }
+  const x = i => padL + i * (W - padL - padR) / (data.length - 1);
+  const y = val => padT + (H - padT - padB) * (1 - (val - min) / (max - min));
+
+  const gridCount = 4;
+  let grid = '';
+  for (let g = 0; g <= gridCount; g++) {
+    const val = min + (max - min) * g / gridCount;
+    const gy = y(val);
+    grid += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />`;
+    grid += `<text x="${padL - 6}" y="${gy + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${chartMetric === 'temperature' ? val.toFixed(1) : Math.round(val)}</text>`;
+  }
+
+  const line = data.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+  const area = `${line} L ${x(data.length - 1).toFixed(1)} ${H - padB} L ${padL} ${H - padB} Z`;
+  const status = getStatus(s.risk);
+  const color = chartMetric === 'risk' ? statusColor(status) : 'var(--blue)';
+
+  const last = data[data.length - 1];
+  const dots = data.map((v, i) => i === data.length - 1 ? `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="5" fill="${color}" stroke="var(--panel)" stroke-width="2" />` : '').join('');
+
+  let threshold = '';
+  if (chartMetric === 'risk') {
+    threshold = `<line x1="${padL}" y1="${y(70)}" x2="${W - padR}" y2="${y(70)}" stroke="var(--red)" stroke-dasharray="5 4" stroke-width="1.5" vector-effect="non-scaling-stroke" /><text x="${W - padR - 4}" y="${y(70) - 5}" text-anchor="end" font-size="10" fill="var(--red)">위험 70%</text>`;
+  } else {
+    const [lo, hi] = ranges[chartMetric];
+    if (hi >= min && hi <= max) threshold += `<line x1="${padL}" y1="${y(hi)}" x2="${W - padR}" y2="${y(hi)}" stroke="var(--amber)" stroke-dasharray="5 4" stroke-width="1.2" vector-effect="non-scaling-stroke" />`;
+    if (lo >= min && lo <= max) threshold += `<line x1="${padL}" y1="${y(lo)}" x2="${W - padR}" y2="${y(lo)}" stroke="var(--amber)" stroke-dasharray="5 4" stroke-width="1.2" vector-effect="non-scaling-stroke" />`;
+  }
+
+  let xlab = '';
+  [0, 6, 12, 18, 23].forEach(i => { xlab += `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)">${i === 23 ? '현재' : '-' + (23 - i) + 'h'}</text>`; });
+
+  svg.innerHTML = `<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.28" /><stop offset="100%" stop-color="${color}" stop-opacity="0.02" /></linearGradient></defs>${grid}${threshold}<path d="${area}" fill="url(#grad)" /><path d="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />${dots}${xlab}`;
+
+  document.getElementById('chartLabel').textContent = `${labels[chartMetric]} · 현재 ${last}${units[chartMetric]} (최저 ${Math.min(...data)} / 최고 ${Math.max(...data)})`;
+}
+
+/* ============ 알람 (신규 구현) ============
+   기존 문제: 위험 상태가 유지되는 동안 매 갱신(10초)마다 같은 알람이 계속 새로 쌓였음.
+   수정: "상태 유지형" 조건은 새로 위험해진 순간(false→true 전이)에만 1번 울리도록 변경.
+   급상승(riskSpike)은 매 갱신 시점의 변화량 자체가 이벤트이므로 예외적으로 유지. */
+function evaluateAlarms(id, silent) {
+  const s = state[id], v = s.vitals, lab = s.labs || {};
+  if (!s.alarmState) s.alarmState = {};
+  const conditions = {
+    lowMAP: [mapOf(v) < 65, 'danger', `MAP ${mapOf(v)} mmHg — 목표(65) 미만`],
+    highLactate: [lab.lactate >= 4, 'danger', `젖산 ${lab.lactate} mmol/L — 조직 저관류 의심`],
+    lowGCS: [v.gcs < 15, 'warning', `GCS ${v.gcs} — 의식 저하`],
+    riskDanger: [s.risk >= 70, 'danger', `패혈증 위험도 ${s.risk}% — 위험 단계 진입`],
+    lowBP: [v.sysBloodPress < 90, 'danger', `수축기 혈압 ${v.sysBloodPress} mmHg — 저혈압`],
+    lowSpO2: [v.spO2 < 92, 'danger', `SpO₂ ${v.spO2}% — 산소포화도 저하`],
+    highTemp: [v.temperature >= 39, 'danger', `체온 ${v.temperature}°C — 고열`],
+    highRR: [v.respRate >= 25, 'warning', `호흡수 ${v.respRate}/min — 빈호흡`],
+    highHR: [v.heartRate > 120, 'warning', `심박수 ${v.heartRate} bpm — 빈맥`],
+    fever: [v.temperature >= 38 && v.temperature < 39, 'warning', `체온 ${v.temperature}°C — 발열`],
+  };
+  const push = (lv, msg) => {
+    s.alarms.push({id: Date.now() + Math.random(), level: lv, msg, time: nowT(), ts: Date.now(), acked: false});
+    if (!silent && lv === 'danger') log('알람', `${id} ${msg}`);
+  };
+  // 상태 유지형 조건: false→true로 새로 넘어갈 때만 알람 발생
+  Object.keys(conditions).forEach(key => {
+    const [now, lv, msg] = conditions[key];
+    const prev = !!s.alarmState[key];
+    if (now && !prev) push(lv, msg);
+    s.alarmState[key] = now;
+  });
+  // 급상승은 매 갱신 시점의 변화량 자체가 이벤트라 예외적으로 매번 평가
+  if (s.risk - s.prevRisk >= 8) push('danger', `위험도 급상승 (+${s.risk - s.prevRisk}%p)`);
+  if (s.alarms.length > 60) s.alarms = s.alarms.slice(-60);
+}
+
+function renderAlarms() {
+  const s = state[selectedPatientId], el = document.getElementById('alarmList');
+  if (!s.alarms.length) { el.innerHTML = '<div class="empty">임계값을 넘은 신호가 없습니다.</div>'; return; }
+  const now = Date.now();
+  el.innerHTML = s.alarms.slice().reverse().slice(0, 30).map(a => {
+    const mins = Math.max(0, Math.floor((now - (a.ts || now)) / 60000));
+    const stale = !a.acked && mins >= 5;
+    const elapsedTxt = a.acked ? '' : (mins < 1 ? '방금 발생' : `⏱ ${mins}분 경과`);
+    return `<div class="alarm ${a.level}-border ${a.acked ? 'acked' : ''} ${stale ? 'stale' : ''}"><div class="alarm-head"><span>${a.level === 'danger' ? '🔴 위험' : '🟡 주의'}</span><span>${a.time}</span></div><p class="alarm-msg">${esc(a.msg)}</p>${elapsedTxt ? `<p class="alarm-elapsed ${stale ? 'stale-text' : ''}">${elapsedTxt}${stale ? ' — 확인 지연' : ''}</p>` : ''}<div class="alarm-actions">${a.acked ? '<span class="acked-tag">확인됨</span>' : `<button class="ack-btn" onclick="ackAlarm('${selectedPatientId}',${a.id})">확인 처리</button>`}</div></div>`;
+  }).join('');
+  renderGlobalAlarmBadge();
+}
+
+function ackAlarm(patientId, alarmId) {
+  const a = state[patientId].alarms.find(x => x.id === alarmId);
+  if (a) { a.acked = true; log('조치', `${patientId} 알람 확인 처리`); }
+  if (patientId === selectedPatientId) renderAlarms();
+  else renderGlobalAlarmBadge();
+  if (document.getElementById('unackModalOverlay').style.display !== 'none') renderUnackModal();
+}
+
+/* 환자 상관없이, 확인되지 않은 위험(danger) 알람 총 개수를 항상 헤더에 표시 */
+function renderGlobalAlarmBadge() {
+  const badge = document.getElementById('globalAlarmBadge');
+  if (!badge) return;
+  const count = visiblePatients().reduce((sum, p) => sum + (state[p.id] ? state[p.id].alarms.filter(a => !a.acked && a.level === 'danger').length : 0), 0);
+  badge.textContent = `${viewMode === 'mine' ? '내 환자 ' : ''}미확인 위험 알람 ${count}건`;
+  badge.className = `unack-badge ${count === 0 ? 'zero' : ''}`;
+}
+
+/* 배지를 누르면 전체 환자의 미확인 위험 알람을 모아서 보여줍니다 */
+function openUnackModal() {
+  renderUnackModal();
+  document.getElementById('unackModalOverlay').style.display = 'flex';
+}
+function closeUnackModal() {
+  document.getElementById('unackModalOverlay').style.display = 'none';
+}
+function renderUnackModal() {
+  const el = document.getElementById('unackModalList');
+  if (!el) return;
+  const now = Date.now();
+  const rows = [];
+  visiblePatients().forEach(p => {
+    const s = state[p.id];
+    if (!s) return;
+    s.alarms.forEach(a => { if (!a.acked && a.level === 'danger') rows.push({p, a}); });
+  });
+  rows.sort((x, y) => (y.a.ts || 0) - (x.a.ts || 0));
+  if (!rows.length) { el.innerHTML = '<div class="empty">미확인 위험 알람이 없습니다.</div>'; return; }
+  el.innerHTML = rows.map(({p, a}) => {
+    const mins = Math.max(0, Math.floor((now - (a.ts || now)) / 60000));
+    return `<div class="unack-modal-item"><div class="um-top"><span>${esc(p.name)} · ${esc(p.room)}</span><span>${mins < 1 ? '방금 발생' : `⏱ ${mins}분 경과`}</span></div><div>${esc(a.msg)}</div><div class="um-actions"><button class="btn btn-ghost" onclick="jumpToPatient('${p.id}')">환자 보기</button><button class="ack-btn" onclick="ackAlarm('${p.id}',${a.id})">확인 처리</button></div></div>`;
+  }).join('');
+}
+/* 모달에서 특정 환자로 바로 이동 */
+function jumpToPatient(patientId) {
+  closeUnackModal();
+  selectPatient(patientId);
+  const firstTabBtn = document.querySelector('.tab-btn');
+  switchTab('monitoring', firstTabBtn);
+}
+
+/* "비우기"는 이미 확인 처리된 알람만 정리 — 미확인 알람은 실수로 지워지지 않도록 보호 */
+function clearAlarms() {
+  const s = state[selectedPatientId];
+  const before = s.alarms.length;
+  s.alarms = s.alarms.filter(a => !a.acked);
+  renderAlarms();
+  log('조치', `${selectedPatientId} 확인된 알람 ${before - s.alarms.length}건 정리`);
+}
+
+/* ============ 의료진 조치 기록 ============ */
+function recordIntervention(type) {
+  const patientId = selectedPatientId;
+  const payload = {type, label: INTERVENTION_LABELS[type] || type, doctor: me.name, role: me.role, time: nowT()};
+  let id;
+  if (fbReady && fbDb) {
+    id = fbDb.ref(`${INTERVENTION_ROOT}/${patientId}`).push().key;
+  } else {
+    id = `${Date.now()}-${fbSeq++}`;
+  }
+  const item = {id, ...payload};
+  state[patientId].interventions = state[patientId].interventions || [];
+  state[patientId].interventions.push(item);
+  if (patientId === selectedPatientId) renderInterventions();
+  log('조치', `${patientId} ${payload.label} — ${me.name}`);
+  if (fbReady && fbDb) {
+    fbDb.ref(`${INTERVENTION_ROOT}/${patientId}/${id}`).set(payload).catch(err => console.warn('Firebase 조치 기록 실패', err));
+  }
+}
+
+function renderInterventions() {
+  const el = document.getElementById('interventionList');
+  if (!el) return;
+  const list = (state[selectedPatientId].interventions || []).slice().reverse().slice(0, 30);
+  if (!list.length) { el.innerHTML = '<div class="empty">기록된 조치가 없습니다.</div>'; return; }
+  el.innerHTML = list.map(it => `<div class="intervention-item"><span class="intervention-time">${it.time}</span><span class="intervention-label">${esc(it.label)}</span><span class="intervention-doctor">${esc(it.doctor)} · ${esc(it.role)}</span></div>`).join('');
+}
+
+function startInterventionSync() {
+  if (!fbReady || !fbDb || interventionListenersAttached) return;
+  interventionListenersAttached = true;
+  patients.forEach(p => {
+    const ref = fbDb.ref(`${INTERVENTION_ROOT}/${p.id}`).limitToLast(100);
+    ref.once('value').then(snap => {
+      const list = state[p.id].interventions = state[p.id].interventions || [];
+      snap.forEach(child => {
+        const key = child.key, val = child.val();
+        if (val && !list.some(x => x.id === key)) list.push({id: key, ...val});
+      });
+      if (p.id === selectedPatientId) renderInterventions();
+      ref.on('child_added', s2 => {
+        const key = s2.key, val = s2.val();
+        const list2 = state[p.id].interventions;
+        if (!val || list2.some(x => x.id === key)) return;
+        list2.push({id: key, ...val});
+        if (p.id === selectedPatientId) renderInterventions();
+      });
+    }).catch(err => console.warn('Firebase 조치 기록 초기 로드 실패', err));
+  });
+}
+function stopInterventionSync() {
+  if (fbReady && fbDb) patients.forEach(p => fbDb.ref(`${INTERVENTION_ROOT}/${p.id}`).off());
+  interventionListenersAttached = false;
+}
+
+/* ============ 환자별 담당 의료진/간호사 지정 ============ */
+function updateAssignment() {
+  const patientId = selectedPatientId;
+  const doctor = (document.getElementById('assignedDoctorSelect') || {}).value || '';
+  const nurse = (document.getElementById('assignedNurseSelect') || {}).value || '';
+  state[patientId].assignedDoctor = doctor;
+  state[patientId].assignedNurse = nurse;
+  log('조치', `${patientId} 담당 배정 변경 (전공의: ${doctor || '-'} / 간호사: ${nurse || '-'})`);
+  if (fbReady && fbDb) {
+    fbDb.ref(`${ASSIGNMENT_ROOT}/${patientId}`).set({doctor, nurse, updatedBy: me.name, time: nowT()}).catch(err => console.warn('Firebase 담당 배정 저장 실패', err));
+  }
+  renderAll();
+}
+
+function renderAssignment() {
+  const s = state[selectedPatientId];
+  const ds = document.getElementById('assignedDoctorSelect'), ns = document.getElementById('assignedNurseSelect');
+  if (ds) ds.value = s.assignedDoctor || '';
+  if (ns) ns.value = s.assignedNurse || '';
+}
+
+function startAssignmentSync() {
+  if (!fbReady || !fbDb || assignmentListenerAttached) return;
+  assignmentListenerAttached = true;
+  patients.forEach(p => {
+    fbDb.ref(`${ASSIGNMENT_ROOT}/${p.id}`).on('value', snap => {
+      const val = snap.val();
+      if (!state[p.id]) return;
+      /* 아직 배정 기록이 없는 환자는 기본 담당을 사용 — 한 번이라도 저장되면 저장값(미지정 포함)을 따릅니다 */
+      state[p.id].assignedDoctor = val ? (val.doctor || '') : (p.doc || '');
+      state[p.id].assignedNurse = val ? (val.nurse || '') : (p.nurse || '');
+      if (viewMode === 'mine') { renderAll(); return; }
+      if (p.id === selectedPatientId) renderAssignment();
+      renderPatientList();
+      renderViewToggle();
+    });
+  });
+}
+function stopAssignmentSync() {
+  if (fbReady && fbDb) patients.forEach(p => fbDb.ref(`${ASSIGNMENT_ROOT}/${p.id}`).off());
+  assignmentListenerAttached = false;
+}
+
+/* ============ 위험도 변화 타임라인 ============ */
+function renderRiskTimeline() {
+  const el = document.getElementById('riskTimelineList');
+  if (!el) return;
+  const list = (state[selectedPatientId].riskTimeline || []).slice().reverse();
+  if (!list.length) { el.innerHTML = '<div class="empty">아직 기록된 변화가 없습니다.</div>'; return; }
+  el.innerHTML = list.map(t => `<div class="timeline-item"><span class="timeline-time">${t.time}</span><span class="timeline-risk" style="color:${statusColor(getStatus(t.risk))}">${t.risk}%</span><span class="timeline-driver">${esc(t.driver)}</span></div>`).join('');
+}
+
+/* ============ 공유 피드백 ============ */
+function addFeedback() {
+  const input = document.getElementById('feedbackInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const patientId = selectedPatientId;
+  const payload = {author: me.name, role: me.role, time: nowT(), ts: Date.now(), text};
+  let id;
+  if (fbReady && fbDb) {
+    id = fbDb.ref(`${FEEDBACK_ROOT}/${patientId}`).push().key;
+  } else {
+    id = `${Date.now()}-${fbSeq++}`;
+  }
+  const item = {id, ...payload, own: true, unread: false};
+  state[patientId].feedback.push(item);
+  input.value = '';
+  renderFeedback();
+  log('기록', `${patientId} 피드백 공유 — ${me.name}`);
+  if (fbReady && fbDb) {
+    /* 공용 데이터베이스에 저장 → 다른 컴퓨터/브라우저의 의료진도 즉시 확인 가능 */
+    fbDb.ref(`${FEEDBACK_ROOT}/${patientId}/${id}`).set(payload).catch(err => console.warn('Firebase 피드백 기록 실패', err));
+  } else if (channel) {
+    channel.postMessage({patientId, item: {...item, own: false, unread: true}});
+  }
+}
+
+/* 다른 탭(다른 의료진)에서 올라온 피드백 수신 */
+function receiveFeedback(data) {
+  if (!data || !state[data.patientId]) return;
+  const list = state[data.patientId].feedback;
+  if (list.some(f => f.id === data.item.id)) return;
+  list.push(data.item);
+  const p = patients.find(x => x.id === data.patientId);
+  log('수신', `${p.name} 피드백 수신 — ${data.item.author}`);
+  if (data.patientId === selectedPatientId) renderFeedback();
+}
+
+/* 발표용: 동료 한 명이 방금 피드백을 남긴 상황을 재현합니다 */
+function simulateIncoming() {
+  const pool = [['오세훈', '감염내과', '항생제 반응 확인했습니다. 24시간 뒤 재평가 예정입니다.'], ['이아연', '당직의', '방금 회진 다녀왔습니다. 활력징후 변화 없어 현 처치 유지합니다.'], ['정하늘', 'ICU 간호사', '수액 라인 교체 완료했고 소변량 정상 유지 중입니다.'], ['하유진', '전공의', '검사 결과 확인 후 다시 의견 남기겠습니다.']].filter(x => x[0] !== me.name);
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  receiveFeedback({patientId: selectedPatientId, item: {id: `sim-${Date.now()}-${fbSeq++}`, author: pick[0], role: pick[1], time: nowT(), ts: Date.now(), text: pick[2], own: false, unread: true}});
+  renderFeedback();
+}
+
+function deleteFeedback(id) {
+  const patientId = selectedPatientId;
+  const list = state[patientId].feedback;
+  const i = list.findIndex(f => f.id === id);
+  if (i < 0 || list[i].author !== me.name) return;
+  list.splice(i, 1);
+  renderFeedback();
+  log('기록', `${patientId} 내 피드백 삭제`);
+  if (fbReady && fbDb) {
+    fbDb.ref(`${FEEDBACK_ROOT}/${patientId}/${id}`).remove().catch(err => console.warn('Firebase 피드백 삭제 실패', err));
+  }
+}
+
+function renderFeedback() {
+  const el = document.getElementById('feedbackList');
+  if (!el) return;
+  const all = state[selectedPatientId].feedback;
+  const filter = (document.getElementById('fbFilter') || {}).value || 'all';
+  const mine = f => f.author === me.name;
+  const fb = all.filter(f => filter === 'mine' ? mine(f) : filter === 'others' ? !mine(f) : true);
+
+  const badge = document.getElementById('fbUnread');
+  const unread = all.filter(f => f.unread).length;
+  if (badge) { badge.textContent = unread; badge.style.display = unread ? 'inline-block' : 'none'; }
+
+  if (!fb.length) {
+    el.innerHTML = `<div class="empty">${filter === 'mine' ? '내가 남긴 피드백이 없습니다.' : filter === 'others' ? '동료가 남긴 피드백이 없습니다.' : '이 환자에 대한 피드백이 아직 없습니다. 첫 의견을 남겨보세요.'}</div>`;
+  } else {
+    el.innerHTML = fb.slice().reverse().map(f => `<div class="feedback-item ${mine(f) ? 'own' : f.unread ? 'unread' : ''}"><div><div class="feedback-meta"><span class="author">${esc(f.author)}</span><span class="role-tag">${esc(f.role)}</span><span>${esc(itemDT(f, f.id))}</span>${f.unread ? '<span class="new-dot">NEW</span>' : ''}${mine(f) ? '<span class="role-tag" style="border-color:var(--green);color:var(--green)">나</span>' : ''}</div><div>${esc(f.text)}</div></div>${mine(f) ? `<button class="link-btn" onclick="deleteFeedback('${f.id}')">삭제</button>` : ''}</div>`).join('');
+  }
+
+  /* 모니터링 탭에서 실제로 본 항목은 읽음 처리 */
+  if (document.getElementById('monitoring').classList.contains('active')) {
+    setTimeout(() => { let changed = false; all.forEach(f => { if (f.unread) { f.unread = false; changed = true; } }); if (changed && badge) badge.style.display = 'none'; }, 2500);
+  }
+}
+
+/* ============ 환자 차트 탭 ============ */
+function renderChartTab() {
+  const p = patients.find(x => x.id === selectedPatientId), v = state[p.id].vitals;
+  const lab = state[p.id].labs, map = mapOf(v);
+  document.getElementById('chartSafetyBanner').innerHTML = safetyChips(p);
+  document.getElementById('chartPatientLabel').textContent = `${p.name} · ${p.room} · ${p.dx} · 최근 검사 ${agoText(lab.ts)}`;
+  const rows = [['체온', v.temperature + '°C', '36–37.5', v.temperature > 38.5 || v.temperature < 36], ['심박', v.heartRate + ' bpm', '60–100', v.heartRate > 120], ['호흡', v.respRate + '/min', '12–20', v.respRate > 25], ['혈압', v.sysBloodPress + '/' + v.dbp + ' mmHg', '90–140 / 60–90', v.sysBloodPress < 90], ['평균동맥압 (MAP)', map + ' mmHg', '65 이상', map < 65], ['SpO₂', v.spO2 + '%', '95 이상', v.spO2 < 94], ['의식 (GCS)', v.gcs + ' / 15', '15', v.gcs < 15], ['젖산', lab.lactate + ' mmol/L', '2.0 미만', lab.lactate >= 2], ['백혈구 (WBC)', lab.wbc + ' ×10³/µL', '4–12', lab.wbc > 12 || lab.wbc < 4], ['크레아티닌', lab.cr + ' mg/dL', '0.6–1.2', lab.cr > 1.2], ['혈소판', lab.plt + ' ×10³/µL', '150–400', lab.plt < 150], ['총 빌리루빈', lab.bili + ' mg/dL', '0.2–1.2', lab.bili > 1.2]];
+  document.getElementById('chartTableBody').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td><strong>${r[1]}</strong></td><td>${r[2]}</td><td>${r[3] ? '⚠️ 이상' : '✓ 정상'}</td></tr>`).join('');
+
+  const e = emr[p.id] || {meds: [], procs: []};
+  document.getElementById('medicationList').innerHTML = e.meds.length ? e.meds.map(m => `<div class="subcard" style="font-size:12px;display:flex;justify-content:space-between;gap:10px;"><span><strong>${m[0]}</strong> · ${m[1]}</span><span style="color:var(--muted)">${m[2]}</span></div>`).join('') : '<div class="empty">투여 기록 없음</div>';
+  document.getElementById('procedureList').innerHTML = e.procs.length ? e.procs.map(m => `<div class="subcard" style="font-size:12px;"><strong>${m[0]}</strong> · ${m[1]}</div>`).join('') : '<div class="empty">시술 기록 없음</div>';
+}
+
+/* ============ 이력 탭 (환자별 + 그래프) ============ */
+function renderHistoryTab() {
+  const p = patients.find(x => x.id === selectedPatientId), h = state[p.id].history;
+  document.getElementById('historyPatientLabel').textContent = `${p.name} · ${p.room} · 최근 7일`;
+  document.getElementById('historyTableBody').innerHTML = h.map(d => {
+    const st = getStatus(d.risk);
+    return `<tr><td>${d.date}</td><td><strong>${d.risk}%</strong></td><td><span class="badge ${statusClass(st)}">${st}</span></td><td>${d.driver}</td></tr>`;
+  }).join('');
+  renderRiskTimeline();
+
+  const svg = document.getElementById('historySvg');
+  const data = h.slice().reverse().map(d => d.risk);
+  const W = 900, H = 220, padL = 44, padR = 14, padT = 16, padB = 26;
+  const x = i => padL + i * (W - padL - padR) / (data.length - 1);
+  const y = v => padT + (H - padT - padB) * (1 - v / 100);
+  let grid = '';
+  [0, 25, 50, 75, 100].forEach(g => { grid += `<line x1="${padL}" y1="${y(g)}" x2="${W - padR}" y2="${y(g)}" stroke="var(--line)" vector-effect="non-scaling-stroke" /><text x="${padL - 6}" y="${y(g) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${g}</text>`; });
+  const bars = data.map((v, i) => {
+    const st = getStatus(v), bw = (W - padL - padR) / data.length * 0.5;
+    return `<rect x="${x(i) - bw / 2}" y="${y(v)}" width="${bw}" height="${H - padB - y(v)}" rx="3" fill="${statusColor(st)}" opacity="0.85" /><text x="${x(i)}" y="${y(v) - 6}" text-anchor="middle" font-size="11" fill="var(--text)">${v}</text>`;
+  }).join('');
+  const xlab = h.slice().reverse().map((d, i) => `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="10" fill="var(--muted)">${d.date.slice(5)}</text>`).join('');
+  svg.innerHTML = `${grid}<line x1="${padL}" y1="${y(70)}" x2="${W - padR}" y2="${y(70)}" stroke="var(--red)" stroke-dasharray="5 4" vector-effect="non-scaling-stroke" />${bars}${xlab}`;
+}
+
+/* ============ 메시지 ============ */
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const p = patients.find(x => x.id === selectedPatientId);
+  const payload = {doctor: `${me.name} · ${me.role}`, time: nowT(), ts: Date.now(), text, patient: `${p.name}/${p.room}`};
+  input.value = '';
+  log('소통', `메시지 전송 (${me.name})`);
+  if (fbReady && fbDb) {
+    /* 공용 데이터베이스에 저장 → 다른 컴퓨터/브라우저의 의료진도 즉시 확인 가능 */
+    fbDb.ref(MESSAGES_PATH).push(payload).catch(err => console.warn('Firebase 메시지 기록 실패', err));
+  } else {
+    messages.push(payload);
+    renderMessages();
+  }
+}
+
+function renderMessages() {
+  const el = document.getElementById('messageList');
+  const note = document.getElementById('msgScopeNote');
+  let list = messages;
+  if (viewMode === 'mine') {
+    const tags = new Set(visiblePatients().map(p => `${p.name}/${p.room}`));
+    list = messages.filter(m => tags.has(m.patient));
+  }
+  if (note) { note.style.display = viewMode === 'mine' ? 'block' : 'none'; note.textContent = `👤 내 환자 모드 — 담당 환자에 관한 메시지 ${list.length}건만 표시 중 (전체 ${messages.length}건)`; }
+  if (!list.length) { el.innerHTML = `<div class="empty">${viewMode === 'mine' && messages.length ? '담당 환자에 관한 메시지가 없습니다.' : '아직 주고받은 메시지가 없습니다. 아래에 입력해 시작하세요.'}</div>`; return; }
+  el.innerHTML = list.map(m => `<div class="message-box"><div class="message-header"><span>${esc(m.doctor)} <span style="font-weight:400;color:var(--muted)">· ${esc(m.patient)}</span></span><span class="message-time">${esc(itemDT(m, m._key))}</span></div><div>${esc(m.text)}</div></div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+/* ============ 요약 & 보고서 ============ */
+function summaryRows() {
+  return visiblePatients().map(p => {
+    const s = state[p.id], st = getStatus(s.risk), diff = s.risk - s.prevRisk;
+    return {name: p.name, room: p.room, risk: s.risk, status: st, diff, reason: reasonsFor(s.vitals, s.labs)[0]};
+  }).sort((a, b) => b.risk - a.risk);
+}
+
+function renderSummaryTab() {
+  document.getElementById('reportDate').textContent = new Date().toLocaleString('ko-KR');
+  const rows = summaryRows();
+  document.getElementById('summaryScopeLabel').textContent = `환자 요약 (${viewMode === 'mine' ? `${me.name} 담당` : '전체'} ${rows.length}명)`;
+  document.getElementById('countDanger').textContent = rows.filter(r => r.status === '위험').length + '명';
+  document.getElementById('countWarn').textContent = rows.filter(r => r.status === '주의').length + '명';
+  document.getElementById('countOk').textContent = rows.filter(r => r.status === '정상').length + '명';
+  document.getElementById('reportSummaryBody').innerHTML = rows.map(r => `<tr><td><strong>${r.name}</strong></td><td>${r.room}</td><td>${r.risk}%</td><td><span class="badge ${statusClass(r.status)}">${r.status}</span></td><td>${r.diff > 0 ? '⬆️ +' + r.diff : r.diff < 0 ? '⬇️ ' + r.diff : '➡️ 0'}</td><td>${esc(r.reason)}</td></tr>`).join('');
+}
+
+function download(filename, content, type) {
+  const blob = new Blob(['\ufeff' + content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadReport() {
+  const rows = summaryRows();
+  const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>패혈증 모니터링 보고서</title><style>body{font-family:"Noto Sans KR",sans-serif;padding:32px;color:#1f2937}h1{font-size:20px}table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}th,td{border:1px solid #e5e7eb;padding:8px;text-align:left}th{background:#f3f4f6}</style></head><body><h1>패혈증 조기 경고 시스템 — 일일 모니터링 보고서</h1><p>생성 일시: ${new Date().toLocaleString('ko-KR')}<br>범위: ${viewMode === 'mine' ? esc(me.name) + ' 담당 환자' : '전체 환자'} (${rows.length}명)<br>작성: 건양대 의료IT공학과 · 바이탈 사인 v5.5.0</p><p>위험 ${rows.filter(r => r.status === '위험').length}명 · 주의 ${rows.filter(r => r.status === '주의').length}명 · 정상 ${rows.filter(r => r.status === '정상').length}명</p><table><thead><tr><th>환자</th><th>병실</th><th>위험도</th><th>상태</th><th>변화</th><th>주요 원인</th></tr></thead><tbody>${rows.map(r => `<tr><td>${r.name}</td><td>${r.room}</td><td>${r.risk}%</td><td>${r.status}</td><td>${r.diff >= 0 ? '+' + r.diff : r.diff}</td><td>${r.reason}</td></tr>`).join('')}</tbody></table></body></html>`;
+  download(`패혈증_보고서_${new Date().toISOString().slice(0, 10)}.html`, html, 'text/html;charset=utf-8');
+  log('출력', '보고서 HTML 저장');
+}
+
+function downloadCsv() {
+  const rows = summaryRows();
+  const csv = ['환자,병실,위험도,상태,변화,주요원인'].concat(rows.map(r => `${r.name},${r.room},${r.risk},${r.status},${r.diff},"${r.reason}"`)).join('\n');
+  download(`패혈증_요약_${new Date().toISOString().slice(0, 10)}.csv`, csv, 'text/csv;charset=utf-8');
+  log('출력', '요약 CSV 내보내기');
+}
+
+function downloadAudit() {
+  const csv = ['시간,의료진,구분,조치'].concat(auditLog.map(l => `${l.time},${l.user || '-'},${l.kind},"${l.action}"`)).join('\n');
+  download(`감시로그_${new Date().toISOString().slice(0, 10)}.csv`, csv, 'text/csv;charset=utf-8');
+}
+
+/* ============ 감시로그 ============ */
+function renderAuditTab() {
+  const body = document.getElementById('auditTableBody');
+  if (!body) return;
+  if (!auditLog.length) { body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">기록 없음</td></tr>'; return; }
+  body.innerHTML = auditLog.slice().reverse().map(l => `<tr><td>${l.time}</td><td>${esc(l.user || '-')}</td><td>${l.kind}</td><td>${esc(l.action)}</td></tr>`).join('');
+}
+
+
+/* ============ 내 환자만 보기 ============ */
+function visiblePatients() {
+  if (viewMode !== 'mine') return patients;
+  return patients.filter(p => state[p.id] && state[p.id].assignedDoctor === me.name);
+}
+function setViewMode(mode) {
+  if (mode === viewMode) return;
+  viewMode = mode;
+  store.set('vitalSign_viewMode_' + me.name, mode);
+  log('설정', mode === 'mine' ? '내 환자만 보기로 전환' : '전체 환자 보기로 전환');
+  renderAll();
+}
+function renderViewToggle() {
+  const mine = patients.filter(p => state[p.id] && state[p.id].assignedDoctor === me.name).length;
+  const a = document.getElementById('viewAllBtn'), m = document.getElementById('viewMineBtn');
+  if (!a || !m) return;
+  a.classList.toggle('on', viewMode === 'all');
+  m.classList.toggle('on', viewMode === 'mine');
+  a.setAttribute('aria-pressed', viewMode === 'all');
+  m.setAttribute('aria-pressed', viewMode === 'mine');
+  document.getElementById('viewAllCount').textContent = patients.length;
+  document.getElementById('viewMineCount').textContent = mine;
+  document.getElementById('patientListTitle').textContent = viewMode === 'mine' ? `내 담당 환자 (${mine}명)` : 'ICU 환자 우선순위';
+  const note = document.getElementById('scopeNote');
+  note.classList.toggle('show', viewMode === 'mine' && mine > 0);
+  note.textContent = `👤 내 환자 모드 — ${me.name} 전공의 담당 환자 ${mine}명의 정보만 표시합니다. 알람 배지, 요약 보고서, 메시지도 담당 환자 기준입니다.`;
+}
+
+/* ============ 환자 안전 정보 배너 ============ */
+function safetyChips(p) {
+  const out = [];
+  out.push(p.allergies.length ? `<span class="chip chip-danger">⚠️ 알레르기: ${p.allergies.map(esc).join(', ')}</span>` : '<span class="chip">알레르기 없음 (NKDA)</span>');
+  out.push(`<span class="chip">⚖️ 체중 ${p.weight} kg</span>`);
+  out.push(p.code === 'DNR' ? '<span class="chip chip-purple">🟣 DNR (심폐소생술 금지)</span>' : '<span class="chip">연명의료: 전체 처치</span>');
+  (p.flags || []).forEach(f => out.push(`<span class="chip chip-amber">${esc(f)}</span>`));
+  return out.join('');
+}
+
+/* ============ Hour-1 번들 ============
+   위험 단계에 들어서는 순간을 Time Zero로 기록하고, 1시간 안에 끝내야 할 항목의
+   완료 시각을 남깁니다. 시작 시각과 기록은 Firebase로 모든 의료진 화면에 공유됩니다. */
+function emptyBundle() { return {t0: null, startedBy: '', auto: false, items: {}}; }
+
+function bundleDefs(id) {
+  const p = patients.find(x => x.id === id), s = state[id], v = s.vitals, lab = s.labs, b = s.bundle, map = mapOf(v);
+  const first = b.items.lactate && b.items.lactate.value != null ? Number(b.items.lactate.value) : lab.lactate;
+  const hypo = v.sysBloodPress < 90 || map < 65;
+  const fluidReasons = [v.sysBloodPress < 90 ? 'SBP <90' : '', map < 65 ? 'MAP <65' : '', first >= 4 ? '젖산 ≥4' : ''].filter(Boolean);
+  const overload = (p.flags || []).some(f => /심부전|신장/.test(f));
+  const onPressor = ((emr[id] || {}).meds || []).some(m => /노르에피네프린|바소프레신|도파민/.test(m[0]));
+  return [
+    {key: 'lactate', label: '젖산 측정', sub: `최근 결과 ${lab.lactate} mmol/L (${agoText(lab.ts)})`, req: true, value: true, unit: 'mmol/L', hour: true},
+    {key: 'culture', label: '혈액배양 채취 — 항생제 투여 전', sub: '2세트 이상 권장', req: true, hour: true},
+    {key: 'abx', label: '광범위 항생제 투여', sub: p.allergies.length ? `⚠️ 알레르기: ${p.allergies.join(', ')} — 약제 선택 시 확인` : '알레르기 없음 (NKDA)', warn: p.allergies.length > 0, req: true, hour: true},
+    {key: 'fluid', label: `정질액 30 mL/kg 투여 — ${(p.weight * 30).toLocaleString()} mL (${p.weight} kg 기준)`, sub: fluidReasons.length ? `적응증 해당: ${fluidReasons.join(', ')}${overload ? ' · 심부전/신장질환 — 투여 중 과부하 관찰' : ''}` : '현재 저혈압·젖산 ≥4 기준 미해당 — 필요 시 기록', req: hypo || first >= 4, hour: true},
+    {key: 'pressor', label: '승압제 시작 — MAP 65 mmHg 이상 목표', sub: `수액 후에도 MAP <65이면 시작 · 현재 MAP ${map} mmHg${onPressor ? ' · EMR상 승압제 투여 중' : ''}`, req: map < 65, hour: true},
+    {key: 'relactate', label: '젖산 재측정', sub: first > 2 ? `초기 젖산 ${first} mmol/L (>2) — 시작 후 2–4시간 안에 권장` : '초기 젖산 2 이하 — 필요 시 기록', req: first > 2, value: true, unit: 'mmol/L', hour: false}
+  ];
+}
+
+function bundleStatus(id) {
+  const s = state[id], b = s && s.bundle;
+  if (!b || !b.t0) return {started: false};
+  const hourItems = bundleDefs(id).filter(d => d.hour && (d.req || b.items[d.key]));
+  const done = hourItems.filter(d => b.items[d.key]);
+  const complete = hourItems.length > 0 && done.length === hourItems.length;
+  const completeMs = complete ? Math.max(...done.map(d => b.items[d.key].ts)) - b.t0 : null;
+  return {started: true, elapsed: Date.now() - b.t0, done: done.length, total: hourItems.length, complete, completeMs};
+}
+
+function fmtClock(ms) {
+  const t = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60;
+  const p2 = n => String(n).padStart(2, '0');
+  return h ? `${h}:${p2(m)}:${p2(sec)}` : `${p2(m)}:${p2(sec)}`;
+}
+function bundleChipText(bs) { return bs.elapsed > BUNDLE_WINDOW ? '⏱ 번들 초과' : `⏱ ${Math.floor(bs.elapsed / 60000)}분`; }
+
+function bundleClock(id) {
+  const st = bundleStatus(id);
+  if (st.complete) {
+    const inTime = st.completeMs <= BUNDLE_WINDOW;
+    return {text: `완료 ${Math.max(0, Math.round(st.completeMs / 60000))}분`, sub: inTime ? '1시간 안에 필수 항목 완료' : '필수 항목 완료 (1시간 초과)', pct: 100, color: inTime ? 'var(--green)' : 'var(--amber)'};
+  }
+  if (st.elapsed <= BUNDLE_WINDOW) {
+    return {text: fmtClock(st.elapsed), sub: `남은 시간 ${fmtClock(BUNDLE_WINDOW - st.elapsed)} · 필수 ${st.done}/${st.total} 완료`, pct: st.elapsed / BUNDLE_WINDOW * 100, color: st.elapsed > 45 * 60000 ? 'var(--amber)' : 'var(--green)'};
+  }
+  return {text: `+${fmtClock(st.elapsed - BUNDLE_WINDOW)}`, sub: `1시간 초과 · 필수 ${st.done}/${st.total} 완료`, pct: 100, color: 'var(--red)'};
+}
+
+function maybeAutoStartBundle(id) {
+  const s = state[id];
+  if (!s || s.bundle.t0 || getStatus(s.risk) !== '위험') return;
+  if (s._autoTry && Date.now() - s._autoTry < 30000) return;
+  s._autoTry = Date.now();
+  startBundle(id, true);
+}
+
+function startBundle(id, auto) {
+  const s = state[id];
+  if (!s || s.bundle.t0) return;
+  const ts = Date.now(), startedBy = auto ? '자동 (위험 단계 진입)' : me.name;
+  s.bundle = {t0: ts, startedBy, auto: !!auto, items: s.bundle.items || {}};
+  const msg = `${id} Hour-1 번들 시작 — ${startedBy}`;
+  if (fbReady && fbDb) {
+    /* 여러 의료진 화면이 동시에 자동 시작해도 Time Zero는 가장 먼저 기록된 한 번만 저장 */
+    fbDb.ref(`${BUNDLE_ROOT}/${id}`).transaction(cur => {
+      if (cur && cur.t0) return;
+      return {t0: ts, startedBy, auto: !!auto, items: (cur && cur.items) || {}};
+    }, (err, committed) => {
+      if (err) console.warn('Firebase 번들 시작 기록 실패', err);
+      else if (committed) log('조치', msg);
+    });
+  } else {
+    log('조치', msg);
+  }
+  if (!auto) renderAll();
+}
+
+function recordBundleItem(key) {
+  const id = selectedPatientId, s = state[id], b = s.bundle;
+  if (!b.t0) return;
+  const def = bundleDefs(id).find(d => d.key === key);
+  const item = {ts: Date.now(), by: me.name, role: me.role};
+  if (def.value) {
+    const inp = document.getElementById('bval-' + key);
+    const n = parseFloat(inp && inp.value);
+    if (!isFinite(n) || n < 0 || n > 30) { if (inp) { inp.style.borderColor = 'var(--red)'; inp.placeholder = '값 입력'; inp.focus(); } return; }
+    item.value = Math.round(n * 10) / 10;
+    item.prevLab = {lactate: s.labs.lactate, ts: s.labs.ts};
+    applyLactate(id, item.value, item.ts);
+  }
+  b.items[key] = item;
+  const name = def.label.split(' — ')[0];
+  log('조치', `${id} 번들 · ${name} 완료${item.value != null ? ` (${item.value} mmol/L)` : ''} — ${me.name}`);
+  if (key === 'abx' && !b.items.culture) log('경고', `${id} 혈액배양 기록 없이 항생제 투여 기록됨`);
+  if (fbReady && fbDb) fbDb.ref(`${BUNDLE_ROOT}/${id}/items/${key}`).set(item).catch(err => console.warn('Firebase 번들 항목 기록 실패', err));
+  renderAll();
+}
+
+function undoBundleItem(key) {
+  const id = selectedPatientId, s = state[id], it = s.bundle.items[key];
+  if (!it || it.by !== me.name) return;
+  if (!confirm('이 기록을 취소할까요?')) return;
+  if (it.prevLab && s.labs.ts === it.ts) { s.labs.lactate = it.prevLab.lactate; s.labs.ts = it.prevLab.ts; s.risk = calcRisk(s.vitals, s.labs); }
+  delete s.bundle.items[key];
+  log('조치', `${id} 번들 항목 기록 취소 (${key})`);
+  if (fbReady && fbDb) fbDb.ref(`${BUNDLE_ROOT}/${id}/items/${key}`).remove().catch(err => console.warn('Firebase 번들 항목 취소 실패', err));
+  renderAll();
+}
+
+function resetBundle() {
+  const id = selectedPatientId, s = state[id];
+  if (!confirm('이 환자의 번들 기록을 모두 지우고 초기화할까요?\n위험 단계인 환자는 지금 시각으로 다시 시작됩니다.')) return;
+  s.bundle = emptyBundle();
+  s._autoTry = 0;
+  log('조치', `${id} Hour-1 번들 초기화 — ${me.name}`);
+  if (fbReady && fbDb) fbDb.ref(`${BUNDLE_ROOT}/${id}`).remove().catch(err => console.warn('Firebase 번들 초기화 실패', err));
+  maybeAutoStartBundle(id);
+  renderAll();
+}
+
+function applyLactate(id, value, ts) {
+  const s = state[id];
+  if (s.labs.ts && ts < s.labs.ts) return;
+  s.labs.lactate = value;
+  s.labs.ts = ts;
+  s.risk = calcRisk(s.vitals, s.labs);
+}
+
+function renderBundle() {
+  const el = document.getElementById('bundleCard');
+  if (!el) return;
+  const id = selectedPatientId, s = state[id], b = s.bundle;
+  /* 자동 갱신으로 다시 그려도 입력 중이던 값과 커서가 사라지지 않도록 보존 */
+  const keep = {}, focused = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id : null;
+  if (el.dataset.pid === id) el.querySelectorAll('input[id^="bval-"]').forEach(i => { keep[i.id] = i.value; });
+  el.dataset.pid = id;
+
+  if (!b.t0) {
+    el.innerHTML = `<div class="bundle-head"><div><h3 style="margin:0">⏱ 패혈증 Hour-1 번들</h3><p class="note" style="margin:6px 0 0">위험 단계에 들어서면 자동으로 시작됩니다. 임상적으로 패혈증이 의심되면 직접 시작하세요.</p></div><button class="btn btn-danger" onclick="startBundle(selectedPatientId, false)">번들 시작</button></div>`;
+    return;
+  }
+  const defs = bundleDefs(id);
+  const rows = defs.map(d => {
+    const it = b.items[d.key];
+    const cls = it ? 'done' : d.req ? '' : 'na';
+    const mark = it ? '✓' : d.req ? '○' : '–';
+    let act;
+    if (it) {
+      const mins = Math.round((it.ts - b.t0) / 60000), late = d.hour && it.ts - b.t0 > BUNDLE_WINDOW;
+      act = `<div class="b-stamp"><span class="${late ? 'b-late' : ''}">+${Math.max(0, mins)}분</span>${it.value != null ? ` · <strong>${it.value} ${d.unit}</strong>` : ''}<br>${esc(fmtDT(it.ts))} · ${esc(it.by)}</div>${it.by === me.name ? `<button class="link-btn" onclick="undoBundleItem('${d.key}')">취소</button>` : ''}`;
+    } else {
+      act = (d.value ? `<input type="number" step="0.1" min="0" id="bval-${d.key}" placeholder="${d.unit}" aria-label="${d.label} 결과" onkeydown="if(event.key==='Enter')recordBundleItem('${d.key}')" />` : '')
+        + `<button class="btn ${d.req ? 'btn-primary' : 'btn-ghost'}" onclick="recordBundleItem('${d.key}')">${d.value ? '결과 기록' : '완료 기록'}</button>`;
+    }
+    return `<div class="b-item ${cls}"><div class="b-mark">${mark}</div><div><div class="b-label">${esc(d.label)}</div><div class="b-sub ${d.warn && !it ? 'warn' : ''}">${esc(d.sub)}</div></div><div class="b-act">${act}</div></div>`;
+  }).join('');
+  const orderWarn = b.items.abx && (!b.items.culture || b.items.culture.ts > b.items.abx.ts)
+    ? `<div class="bundle-warn">⚠️ 혈액배양 ${b.items.culture ? '채취가 항생제 투여보다 늦게' : '기록 없이 항생제가'} 기록되었습니다. 배양 결과 해석에 영향이 있을 수 있습니다.</div>` : '';
+
+  el.innerHTML = `<div class="bundle-head"><div><h3 style="margin:0">⏱ 패혈증 Hour-1 번들</h3><p class="note" style="margin:6px 0 0">Time Zero ${esc(fmtDT(b.t0))} · ${esc(b.startedBy)}</p></div><div class="bundle-clock"><div class="bundle-timer" id="bundleTimer">--:--</div><div class="bundle-timer-sub" id="bundleTimerSub">-</div></div></div>
+    <div class="bundle-bar"><div id="bundleBar"></div></div>
+    <div class="bundle-items">${rows}</div>${orderWarn}
+    <div class="bundle-foot"><span>○ 필수 · – 현재 기준 미해당 · 기록은 모든 의료진 화면에 공유됩니다</span><button class="btn btn-ghost" onclick="resetBundle()">↺ 기록 초기화</button></div>`;
+
+  Object.keys(keep).forEach(k => { const i = document.getElementById(k); if (i) i.value = keep[k]; });
+  if (focused) { const f = document.getElementById(focused); if (f) f.focus(); }
+  tickBundles();
+}
+
+/* 1초마다 타이머 숫자와 환자 목록의 경과 표시만 갱신 (전체를 다시 그리지 않음) */
+function tickBundles() {
+  const t = document.getElementById('bundleTimer');
+  if (t && state[selectedPatientId] && state[selectedPatientId].bundle.t0) {
+    const c = bundleClock(selectedPatientId);
+    t.textContent = c.text;
+    t.style.color = c.color;
+    document.getElementById('bundleTimerSub').textContent = c.sub;
+    const bar = document.getElementById('bundleBar');
+    bar.style.width = c.pct + '%';
+    bar.style.background = c.color;
+  }
+  document.querySelectorAll('.bundle-chip[data-pid]').forEach(ch => {
+    const bs = bundleStatus(ch.dataset.pid);
+    if (!bs.started) return;
+    ch.textContent = bundleChipText(bs);
+    ch.classList.toggle('over', bs.elapsed > BUNDLE_WINDOW);
+  });
+}
+
+function startBundleSync() {
+  if (!fbReady || !fbDb || bundleListenerAttached) return;
+  bundleListenerAttached = true;
+  patients.forEach(p => {
+    fbDb.ref(`${BUNDLE_ROOT}/${p.id}`).on('value', snap => {
+      const val = snap.val(), s = state[p.id];
+      if (!s) return;
+      /* 24시간 지난 번들은 지난 에피소드로 보고 정리 */
+      if (val && val.t0 && Date.now() - val.t0 > 24 * 3600e3) { snap.ref.remove().catch(() => {}); return; }
+      if (!val || !val.t0) {
+        const pendingLocal = s.bundle.t0 && s._autoTry && Date.now() - s._autoTry < 30000;
+        if (!pendingLocal) { s.bundle = emptyBundle(); maybeAutoStartBundle(p.id); }
+      } else {
+        s.bundle = {t0: val.t0, startedBy: val.startedBy || '', auto: !!val.auto, items: val.items || {}};
+        ['lactate', 'relactate'].forEach(k => { const it = s.bundle.items[k]; if (it && it.value != null) applyLactate(p.id, Number(it.value), it.ts); });
+      }
+      if (p.id === selectedPatientId) { renderBundle(); renderVitals(s); }
+      renderPatientList();
+    }, err => console.warn('Firebase 번들 동기화 실패', err));
+  });
+}
+function stopBundleSync() {
+  if (fbReady && fbDb) patients.forEach(p => fbDb.ref(`${BUNDLE_ROOT}/${p.id}`).off());
+  bundleListenerAttached = false;
+}
+
+/* ============ 동작 ============ */
+function selectPatient(id) {
+  selectedPatientId = id;
+  const p = patients.find(x => x.id === id);
+  log('조회', `${p.name} (${id}) 환자 조회`);
+  renderAll();
+}
+
+function refreshData() {
+  patients.forEach(p => {
+    const s = state[p.id];
+    s.prevRisk = s.risk;
+    s.prevVitals = {...s.vitals};
+    const sbp = jitter(s.vitals.sysBloodPress, 'sysBloodPress');
+    s.vitals = {temperature: jitter(s.vitals.temperature, 'temperature'), heartRate: jitter(s.vitals.heartRate, 'heartRate'), respRate: jitter(s.vitals.respRate, 'respRate'), sysBloodPress: sbp, dbp: Math.min(jitter(s.vitals.dbp, 'dbp'), sbp - 15), spO2: jitter(s.vitals.spO2, 'spO2'), gcs: s.vitals.gcs};
+    s.risk = calcRisk(s.vitals, s.labs);
+    s.trend.push({...s.vitals, risk: s.risk});
+    if (s.trend.length > 24) s.trend.shift();
+    s.history[0].risk = s.risk;
+    if (Math.abs(s.risk - s.prevRisk) >= 5 || getStatus(s.risk) !== getStatus(s.prevRisk)) {
+      s.riskTimeline.push({time: nowT(), risk: s.risk, driver: reasonsFor(s.vitals, s.labs)[0]});
+      if (s.riskTimeline.length > 40) s.riskTimeline.shift();
+    }
+    evaluateAlarms(p.id, false);
+    maybeAutoStartBundle(p.id);
+  });
+  updateTime();
+  renderAll();
+}
+
+function toggleAuto() {
+  const on = document.getElementById('autoRefresh').checked;
+  if (on) { autoTimer = setInterval(refreshData, 10000); log('설정', '자동 갱신 켜짐 (10초)'); }
+  else { clearInterval(autoTimer); autoTimer = null; log('설정', '자동 갱신 꺼짐'); }
+}
+
+function updateTime() { document.getElementById('updateTime').textContent = `마지막 업데이트: ${new Date().toLocaleString('ko-KR')}`; }
+
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  document.getElementById('themeBtn').textContent = dark ? '☀️ 라이트모드' : '🌙 다크모드';
+  drawTrendChart();
+  renderHistoryTab();
+}
+
+function renderAll() {
+  renderViewToggle();
+  const vis = visiblePatients();
+  document.body.classList.toggle('no-my-patients', !vis.length);
+  if (!vis.length) { renderGlobalAlarmBadge(); return; }
+  if (!vis.some(p => p.id === selectedPatientId)) {
+    selectedPatientId = vis.slice().sort((a, b) => state[b.id].risk - state[a.id].risk)[0].id;
+  }
+  renderPatientList();
+  renderDashboard();
+  renderChartTab();
+  renderHistoryTab();
+  renderSummaryTab();
+  renderMessages();
+  renderAuditTab();
+  renderGlobalAlarmBadge();
+}
+
+/* 로그인 후 init()이 실행됩니다 */
+document.getElementById('doctorSelect').focus();
+</script>
+</body>
+</html>
