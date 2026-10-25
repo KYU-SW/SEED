@@ -1,0 +1,11 @@
+{
+  "name": "바이탈사인 - 희귀질환 다학제 협진",
+  "short_name": "바이탈사인",
+  "description": "희귀질환 다학제 협진 플랫폼 (교육용 프로토타입)",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9eeec",
+  "theme_color": "#2a7a73",
+  "lang": "ko"
+}
