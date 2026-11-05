@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Re:Move</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 단일 열 앱 셸 — 상단 바 + 화면(view) 하나, 게임 화면은 카메라 캔버스가 중심 */
+:root{
+  --bg:#FFFFFF; --surface:#F5F8FD; --ink:#1D2433; --muted:#596277; --line:#E1E7F1;
+  --blue:#7FA8F5; --blue-deep:#3B68CF; --blue-soft:#E7EFFE;
+  --mint:#4FC2A6; --mint-deep:#1E8A71; --mint-soft:#DDF5EE;
+  --violet:#9B87F0; --violet-deep:#6A52CF; --violet-soft:#EEEAFE;
+  --danger:#D9435C; --danger-soft:#FDE8EC; --warn:#B87512; --warn-soft:#FFF3DF;
+  --font-display:"Jua","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --r-lg:24px; --r-md:16px; --r-sm:12px;
+  --fs:1;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{font-size:calc(17px * var(--fs));-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);line-height:1.6;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;line-height:1.25;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:2rem} h2{font-size:1.45rem} h3{font-size:1.2rem}
+p{margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue-deep);outline-offset:3px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.topbar-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:10px;padding-block:10px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.logo{font-family:var(--font-display);font-size:1.5rem;display:flex;align-items:center;gap:8px;background:none;border:0;padding:4px}
+.logo b{color:var(--blue-deep);font-weight:400}
+.logo i{font-style:normal;color:var(--mint-deep)}
+.logo-mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,var(--blue-soft),var(--mint-soft));display:grid;place-items:center}
+.top-actions{margin-left:auto;display:flex;gap:8px}
+.icon-btn{min-width:48px;height:48px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;font-weight:600;font-size:.9rem}
+.icon-btn[aria-pressed="true"]{background:var(--mint-soft);border-color:var(--mint)}
+.icon-btn svg{width:22px;height:22px}
+body.in-game .hide-in-game{display:none}
+
+/* page */
+main{max-width:1080px;margin:0 auto;padding-block:24px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stack{display:flex;flex-direction:column;gap:20px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.grid-3{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.eyebrow{font-size:.82rem;font-weight:700;letter-spacing:.08em;color:var(--blue-deep)}
+.page-head{display:flex;flex-direction:column;gap:6px}
+.back{align-self:flex-start;background:none;border:0;color:var(--muted);font-weight:600;padding:6px 0;display:flex;gap:6px;align-items:center;min-height:44px}
+
+.card{background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel{background:var(--surface);border-radius:var(--r-lg);padding:22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.btn{min-height:56px;border-radius:18px;border:0;padding:0 24px;font-weight:700;font-size:1.05rem;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:transform .12s ease,box-shadow .12s ease}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--blue-deep);color:#fff;box-shadow:0 6px 18px rgba(59,104,207,.25)}
+.btn-mint{background:var(--mint-deep);color:#fff}
+.btn-soft{background:var(--blue-soft);color:var(--blue-deep)}
+.btn-ghost{background:var(--bg);border:1.5px solid var(--line);color:var(--ink)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger-soft{background:var(--danger-soft);color:var(--danger)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-block{width:100%}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:.82rem;font-weight:700;background:var(--surface);color:var(--muted)}
+.pill.blue{background:var(--blue-soft);color:var(--blue-deep)}
+.pill.mint{background:var(--mint-soft);color:var(--mint-deep)}
+.pill.violet{background:var(--violet-soft);color:var(--violet-deep)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.danger{background:var(--danger-soft);color:var(--danger)}
+.notice{border-radius:var(--r-md);padding:14px 16px;background:var(--surface);color:var(--muted);font-size:.9rem;display:flex;gap:10px;align-items:flex-start}
+.notice.warn{background:var(--warn-soft);color:#6B4608}
+.notice.danger{background:var(--danger-soft);color:#7A1A2B}
+.notice.mint{background:var(--mint-soft);color:#0F5444}
+.notice strong{color:inherit}
+
+/* forms */
+label.field{display:flex;flex-direction:column;gap:8px;font-weight:600}
+.field-label{font-weight:700}
+input[type=text],input[type=number],textarea{border:1.5px solid var(--line);border-radius:var(--r-sm);padding:14px 16px;font-size:1.05rem;background:var(--bg);width:100%}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--blue-deep);box-shadow:0 0 0 4px var(--blue-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-flex;align-items:center;min-height:52px;padding:0 20px;border-radius:16px;border:1.5px solid var(--line);font-weight:600;background:var(--bg);cursor:pointer;user-select:none}
+.chip input:checked+span{background:var(--blue-soft);border-color:var(--blue-deep);color:var(--blue-deep)}
+.chip input:focus-visible+span{outline:3px solid var(--blue-deep);outline-offset:2px}
+.chip{position:relative}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.seg .chip span{width:100%;justify-content:center}
+input[type=range]{width:100%;accent-color:var(--blue-deep);height:36px}
+.err{color:var(--danger);font-weight:600;font-size:.9rem}
+
+/* start */
+.hero{border-radius:32px;padding:clamp(24px,5vw,48px);display:grid;gap:28px;grid-template-columns:1.2fr 1fr;align-items:center;background:linear-gradient(140deg,var(--blue-soft) 0%,var(--mint-soft) 60%,var(--violet-soft) 100%)}
+.hero h1{font-size:clamp(2.4rem,7vw,3.8rem)}
+.hero .tag{font-size:1.2rem;color:var(--ink)}
+.feature-list{display:flex;flex-direction:column;gap:10px;padding:0;margin:0;list-style:none}
+.feature-list li{display:flex;gap:10px;align-items:center;font-weight:600}
+.feature-list li::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--mint-deep);flex:none}
+@media (max-width:760px){.hero{grid-template-columns:1fr}}
+
+/* main */
+.today{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;border-radius:28px;padding:24px}
+.theme-sky{background:linear-gradient(135deg,#EAF1FF,#F5F9FF)}
+.theme-mint{background:linear-gradient(135deg,#DFF6EF,#F2FBF8)}
+.theme-lavender{background:linear-gradient(135deg,#EEE9FF,#F8F5FF)}
+.theme-peach{background:linear-gradient(135deg,#FFE9E1,#FFF6EC)}
+.ring{width:132px;height:132px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .ring-txt{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-family:var(--font-display);font-size:1.6rem;line-height:1.1}
+.ring .ring-txt small{display:block;font-family:var(--font-body);font-size:.75rem;color:var(--muted)}
+.stat-row{display:flex;gap:28px;flex-wrap:wrap}
+.stat b{display:block;font-family:var(--font-display);font-weight:400;font-size:1.6rem}
+.stat span{color:var(--muted);font-size:.88rem}
+@media (max-width:520px){.today{grid-template-columns:1fr;justify-items:start}}
+.tile{border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-lg);padding:20px;display:flex;gap:14px;align-items:center;text-align:left;min-height:96px;width:100%}
+.tile:hover{border-color:var(--blue)}
+.tile .ti{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;flex:none}
+.tile .ti svg{width:28px;height:28px}
+.tile b{display:block;font-size:1.08rem}
+.tile span{color:var(--muted);font-size:.86rem}
+.ti.blue{background:var(--blue-soft);color:var(--blue-deep)}
+.ti.mint{background:var(--mint-soft);color:var(--mint-deep)}
+.ti.violet{background:var(--violet-soft);color:var(--violet-deep)}
+
+/* game cards */
+.game-card .gc-top{display:flex;gap:14px;align-items:center}
+.game-emoji{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:2.1rem;flex:none}
+.bg-blue{background:var(--blue-soft)} .bg-mint{background:var(--mint-soft)} .bg-violet{background:var(--violet-soft)}
+.game-card h3{font-size:1.15rem}
+.game-card .en{font-size:.8rem;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.why{font-size:.86rem;color:var(--mint-deep);font-weight:600}
+
+/* setup / camera */
+.setup-grid{display:grid;gap:20px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+@media (max-width:860px){.setup-grid{grid-template-columns:1fr}}
+.preview{position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--surface);aspect-ratio:4/3;display:grid;place-items:center;max-width:100%}
+.preview canvas{width:100%;height:100%;object-fit:cover;display:block}
+.preview .ph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted)}
+.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.steps li{display:flex;gap:10px;align-items:center;font-weight:600;color:var(--muted)}
+.steps li .dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.75rem;flex:none}
+.steps li.on{color:var(--ink)} .steps li.on .dot{border-color:var(--blue-deep);color:var(--blue-deep)}
+.steps li.ok{color:var(--mint-deep)} .steps li.ok .dot{background:var(--mint-deep);border-color:var(--mint-deep);color:#fff}
+.steps li.bad{color:var(--danger)} .steps li.bad .dot{border-color:var(--danger)}
+
+/* game */
+.game-wrap{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.hud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.hud .h{background:var(--surface);border-radius:var(--r-md);padding:10px 14px}
+.hud .h span{font-size:.8rem;color:var(--muted);font-weight:600;display:block}
+.hud .h b{font-family:var(--font-display);font-weight:400;font-size:1.6rem;line-height:1.2}
+@media (max-width:620px){.hud{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stage-outer{display:flex;justify-content:center}
+.stage{position:relative;display:inline-block;max-width:100%;border-radius:var(--r-lg);overflow:hidden;background:#111;line-height:0}
+.stage canvas{display:block;max-width:100%;max-height:calc(100vh - 290px);width:auto;height:auto}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;line-height:1.4}
+.overlay .bubble{background:rgba(255,255,255,.94);border-radius:20px;padding:16px 22px;text-align:center;font-weight:700;max-width:80%;color:var(--ink)}
+.overlay .count{font-family:var(--font-display);font-size:clamp(4rem,14vw,8rem);color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.35)}
+.game-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.hide-video{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* result */
+.result-hero{border-radius:28px;padding:28px;background:linear-gradient(135deg,var(--mint-soft),var(--blue-soft));display:flex;flex-direction:column;gap:8px}
+.big-score{font-family:var(--font-display);font-size:clamp(3rem,10vw,4.6rem);line-height:1}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr));gap:10px}
+.kv div{background:var(--surface);border-radius:var(--r-md);padding:12px 14px}
+.kv span{display:block;font-size:.8rem;color:var(--muted);font-weight:600}
+.kv b{font-size:1.15rem}
+
+/* exercise */
+.ex-anim{width:100%;max-width:240px;aspect-ratio:1;background:var(--surface);border-radius:var(--r-lg);display:grid;place-items:center}
+.ex-anim svg{width:80%;height:80%}
+.ex-anim .fing{transform-box:fill-box;transform-origin:50% 100%;animation:curl 2.6s ease-in-out infinite}
+.ex-anim .fing:nth-child(2){animation-delay:.08s}.ex-anim .fing:nth-child(3){animation-delay:.16s}.ex-anim .fing:nth-child(4){animation-delay:.24s}
+@keyframes curl{0%,15%,100%{transform:scaleY(1)}50%,65%{transform:scaleY(.42)}}
+.ex-anim .wr{transform-box:fill-box;transform-origin:50% 100%;animation:wag 2.8s ease-in-out infinite}
+@keyframes wag{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+.ex-anim .reach{transform-box:fill-box;transform-origin:0 50%;animation:reach 3s ease-in-out infinite}
+@keyframes reach{0%,100%{transform:scaleX(.5)}50%{transform:scaleX(1)}}
+.ex-anim .sweep{transform-box:view-box;transform-origin:100px 82px;animation:sweep 3.2s ease-in-out infinite}
+@keyframes sweep{0%,100%{transform:rotate(-28deg)}50%{transform:rotate(28deg)}}
+.ex-anim .shrug{animation:shrug 2.4s ease-in-out infinite}
+@keyframes shrug{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.ex-steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.ex-steps li.cur{color:var(--blue-deep);font-weight:700}
+.timer{font-family:var(--font-display);font-size:3rem;line-height:1}
+
+/* records */
+.chart-box{width:100%;overflow-x:auto}
+.chart-box canvas{width:100%;height:240px;display:block}
+.bar-row{display:grid;grid-template-columns:minmax(0,9rem) 1fr auto;gap:12px;align-items:center}
+.bar{height:14px;border-radius:999px;background:var(--surface);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--blue)}
+.log-day h3{font-size:1.05rem;margin-bottom:6px}
+.log-item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.log-item:last-child{border-bottom:0}
+
+/* goals */
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:52px;height:52px;border-radius:16px;border:1.5px solid var(--line);background:var(--bg);font-size:1.5rem;font-weight:700}
+.stepper output{min-width:4.5rem;text-align:center;font-family:var(--font-display);font-size:1.6rem}
+.progress{height:14px;border-radius:999px;background:var(--surface);overflow:hidden}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--blue));border-radius:999px;transition:width .4s ease}
+.badges{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr))}
+.badge{border-radius:var(--r-md);padding:14px;text-align:center;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:6px}
+.badge .bi{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.6rem;background:var(--bg)}
+.badge.locked{opacity:.5}
+.badge.locked .bi{filter:grayscale(1)}
+.badge b{font-size:.92rem}
+.badge span{font-size:.78rem;color:var(--muted)}
+.char-card{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;border-radius:28px;padding:22px}
+.char-card svg{width:120px;height:120px}
+@media (max-width:480px){.char-card{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.theme-pick{display:flex;gap:10px;flex-wrap:wrap}
+.theme-pick button{width:64px;height:64px;border-radius:18px;border:3px solid transparent;position:relative}
+.theme-pick button[aria-pressed="true"]{border-color:var(--blue-deep)}
+.theme-pick button[disabled]{opacity:.35;cursor:not-allowed}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:14px 22px;border-radius:16px;font-weight:600;z-index:50;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <button class="logo hide-in-game" id="logoBtn" aria-label="홈으로">
+      <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#3B68CF" stroke-width="2.4" stroke-linecap="round"><path d="M4 15c3-6 6 2 9-4s5-4 7-1"/><circle cx="19.5" cy="9.5" r="1.6" fill="#1E8A71" stroke="none"/></svg></span>
+      <span><b>Re</b>:<i>Move</i></span>
+    </button>
+    <div class="top-actions">
+      <button class="icon-btn" id="fontBtn" aria-label="글자 크기 바꾸기" title="글자 크기">가<span id="fontLbl" class="small">보통</span></button>
+      <button class="icon-btn" id="voiceBtn" aria-pressed="true" aria-label="음성 안내 켜기·끄기" title="음성 안내">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="voiceWave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+      </button>
+      <button class="icon-btn hide-in-game" id="homeBtn" aria-label="메인 화면">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<main id="view" tabindex="-1"></main>
+<video id="cam" class="hide-video" playsinline muted autoplay></video>
+
+<script>
+/* ============ 저장소 ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={
+  get(k,d){try{const v=localStorage.getItem('remove:'+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('remove:'+k,JSON.stringify(v))}catch(e){}}
+};
+const state={
+  profile:store.get('profile',null),
+  settings:Object.assign({fontScale:1,voice:true,sound:true,mirror:true,grabMode:'grip'},store.get('settings',{})),
+  records:store.get('records',[]),
+  checks:store.get('checks',[]),
+  goals:Object.assign({dailyGames:3,dailyMinutes:10,weeklyDays:5},store.get('goals',{})),
+  theme:store.get('theme','sky'),
+};
+const save=k=>store.set(k,state[k]);
+
+/* ============ 날짜 ============ */
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>{d=new Date(d);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const today=()=>ymd(new Date());
+const fmtDate=s=>{const d=new Date(s);return `${d.getMonth()+1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`};
+const fmtTime=s=>{const d=new Date(s);return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const mmss=sec=>{sec=Math.max(0,Math.ceil(sec));return `${Math.floor(sec/60)}:${pad(sec%60)}`};
+const minText=sec=>{const m=sec/60;return m<1?`${Math.round(sec)}초`:`${Math.round(m*10)/10}분`};
+
+/* ============ 데이터 정의 ============ */
+const PARTS=['손가락','손목','팔','어깨','허리','다리','발목'];
+const PURPOSES=['손과 팔의 움직임 연습','팔 뻗기 연습','좌우 움직임 연습','하체 움직임 연습','일상생활 동작 연습'];
+const LOWER=['허리','다리','발목'];
+
+const GAMES=[
+  {id:'fruit',name:'Fruit Slice Rehab',ko:'과일 썰기',icon:'🍉',color:'mint',
+   desc:'떠다니는 과일을 손을 휘둘러 썰어요. 손이 과일을 지나가는 경로를 인식해요.',
+   moves:['손 좌우로 휘두르기','팔 뻗기'],parts:['손목','팔','어깨'],purposes:['손과 팔의 움직임 연습','좌우 움직임 연습','팔 뻗기 연습']},
+  {id:'basket',name:'Basket Rehab',ko:'바구니에 넣기',icon:'🧺',color:'blue',
+   desc:'손을 쥐어 물건을 잡고 바구니로 옮긴 뒤 손을 펴서 놓아요.',
+   moves:['손 쥐기·펴기','팔 이동'],parts:['손가락','손목','팔'],purposes:['손과 팔의 움직임 연습','일상생활 동작 연습']},
+  {id:'target',name:'Target Touch Rehab',ko:'목표물 터치',icon:'🎯',color:'violet',
+   desc:'화면 여러 곳에 나타나는 목표물에 손을 가져다 대요.',
+   moves:['팔 뻗기','위치 맞추기'],parts:['팔','어깨','손목'],purposes:['팔 뻗기 연습','손과 팔의 움직임 연습']},
+  {id:'balloon',name:'Balloon Rehab',ko:'풍선 터뜨리기',icon:'🎈',color:'violet',
+   desc:'아래에서 떠오르는 풍선에 손을 대서 터뜨려요.',
+   moves:['팔 들어 올리기','팔 뻗기'],parts:['팔','어깨'],purposes:['팔 뻗기 연습','손과 팔의 움직임 연습']},
+  {id:'move',name:'Move Object Rehab',ko:'좌우 물건 옮기기',icon:'📦',color:'blue',
+   desc:'가운데 물건을 잡아 안내하는 왼쪽·오른쪽 자리로 옮겨요. 단계별로 진행돼요.',
+   moves:['좌우 이동','팔 뻗기','손 쥐기'],parts:['팔','어깨','손목'],purposes:['좌우 움직임 연습','팔 뻗기 연습','일상생활 동작 연습']},
+];
+const G=id=>GAMES.find(g=>g.id===id);
+
+const DIFF={
+  easy:  {label:'쉬움',  size:1.35,speed:.55,time:90,region:.55,hitPad:1.35,count:2,slice:.5, life:7,  dwell:1.1},
+  normal:{label:'보통',  size:1,   speed:1,  time:75,region:.75,hitPad:1.15,count:3,slice:.85,life:5,  dwell:.9},
+  hard:  {label:'어려움',size:.72, speed:1.45,time:60,region:.92,hitPad:1,  count:4,slice:1.15,life:3.6,dwell:.75},
+};
+const DIFF_DESC={
+  easy:'큰 물체 · 가까운 위치 · 느린 진행 · 넉넉한 시간(90초)',
+  normal:'조금 작은 물체 · 다양한 위치 · 보통 속도(75초)',
+  hard:'작은 물체 · 넓은 움직임 범위 · 빠른 진행(60초)',
+};
+const ORDER=['easy','normal','hard'];
+
+const EXERCISES=[
+  {id:'finger',name:'손가락 굽히기 및 펴기',parts:['손가락','손목'],purpose:'손가락 관절을 부드럽게 움직이고 손 쥐기·펴기를 연습해요.',
+   steps:['의자에 편히 앉아 손바닥을 위로 해 허벅지나 책상 위에 올려 두세요.','천천히 손가락을 굽혀 가볍게 주먹을 쥐세요.','그대로 3초 동안 유지하세요.','천천히 손가락을 활짝 펴고 3초 쉬세요.'],sec:120,reps:'10회 × 2세트',anim:'finger'},
+  {id:'wrist',name:'손목 좌우 움직이기',parts:['손목'],purpose:'손목을 좌우로 움직이는 범위를 연습해요.',
+   steps:['팔꿈치를 책상에 대고 손바닥이 아래를 보게 하세요.','손목만 천천히 엄지 쪽으로 기울이세요.','가운데로 돌아온 뒤 새끼손가락 쪽으로 기울이세요.','아프지 않은 범위에서만 움직이세요.'],sec:120,reps:'좌우 각 10회',anim:'wrist'},
+  {id:'reach',name:'팔 앞으로 뻗기',parts:['팔','어깨'],purpose:'팔을 앞으로 뻗는 동작과 팔꿈치 펴기를 연습해요.',
+   steps:['등을 펴고 앉아 손을 가슴 앞에 두세요.','숨을 내쉬며 팔을 천천히 앞으로 뻗으세요.','끝에서 2초 머무르세요.','천천히 가슴 앞으로 되돌아오세요.'],sec:120,reps:'10회',anim:'reach'},
+  {id:'sweep',name:'팔 좌우로 움직이기',parts:['팔','어깨'],purpose:'팔을 몸 앞에서 좌우로 옮기는 동작을 연습해요.',
+   steps:['팔을 어깨 높이보다 낮게 앞으로 내미세요.','천천히 왼쪽으로 옮기세요.','가운데를 지나 오른쪽으로 옮기세요.','어깨에 힘을 빼고 반복하세요.'],sec:120,reps:'좌우 각 8회',anim:'sweep'},
+  {id:'shoulder',name:'어깨 움직임 연습',parts:['어깨'],purpose:'어깨를 으쓱 올렸다 내리며 어깨 주변을 풀어 줘요.',
+   steps:['팔을 몸 옆에 편하게 내려 두세요.','숨을 들이쉬며 어깨를 귀 쪽으로 천천히 올리세요.','2초 머무른 뒤 숨을 내쉬며 내리세요.','어깨를 뒤로 작게 돌리며 마무리하세요.'],sec:120,reps:'10회',anim:'shoulder'},
+];
+
+/* ============ 음성 · 효과음 ============ */
+function speak(text,force){
+  if(!(state.settings.voice||force)) return;
+  try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ko-KR';u.rate=.95;
+    const v=s.getVoices().find(v=>v.lang&&v.lang.startsWith('ko'));if(v)u.voice=v;s.speak(u)}catch(e){}
+}
+let actx=null;
+function audio(){if(!state.settings.sound)return null;try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx}catch(e){return null}}
+function tone(f,dur,type='sine',vol=.18,to){const a=audio();if(!a)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime;o.type=type;o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.02)}
+function noise(dur,vol=.25,hp=1000){const a=audio();if(!a)return;const n=Math.floor(a.sampleRate*dur),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=hp;const g=a.createGain();g.gain.value=vol;s.connect(f).connect(g).connect(a.destination);s.start()}
+const SFX={
+  slice(){noise(.13,.28,2600);tone(1100,.09,'triangle',.07,320)},
+  pop(){noise(.07,.4,700);tone(520,.12,'sine',.14,110)},
+  ding(){tone(880,.16,'sine',.16);setTimeout(()=>tone(1318,.22,'sine',.14),90)},
+  bomb(){tone(130,.45,'sawtooth',.18,38);noise(.35,.3,80)},
+  grab(){tone(420,.07,'square',.05)},
+  miss(){tone(330,.18,'sine',.09,190)},
+  tick(){tone(660,.08,'sine',.1)},
+  go(){tone(990,.25,'triangle',.15)},
+};
+
+/* ============ 공통 계산 ============ */
+const todays=()=>state.records.filter(r=>ymd(r.date)===today());
+function todayStats(){const t=todays();return{games:t.filter(r=>r.type==='game'&&r.completed).length,sec:t.reduce((a,r)=>a+r.durationSec,0),list:t}}
+function dayStats(key){const t=state.records.filter(r=>ymd(r.date)===key);return{games:t.filter(r=>r.type==='game'&&r.completed).length,sec:t.reduce((a,r)=>a+r.durationSec,0),n:t.length}}
+function last7(){const out=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=ymd(d);out.push({key:k,d,...dayStats(k)})}return out}
+function weekDaysActive(){return last7().filter(d=>d.n>0).length}
+
+function recommend(){
+  const p=state.profile;
+  return GAMES.map(g=>{
+    if(!p) return {g,score:0,why:[]};
+    const pm=g.parts.filter(x=>p.parts.includes(x)), um=g.purposes.filter(x=>p.purposes.includes(x));
+    return {g,score:pm.length*2+um.length*3,why:[...pm,...um]};
+  }).sort((a,b)=>b.score-a.score);
+}
+function onlyLower(){const p=state.profile;if(!p)return false;const up=p.parts.filter(x=>!LOWER.includes(x));const upP=p.purposes.filter(x=>x!=='하체 움직임 연습');return up.length===0&&upP.length===0}
+
+function recommendDiff(gid){
+  const recs=state.records.filter(r=>r.type==='game'&&r.gameId===gid);
+  if(!recs.length) return {d:'easy',why:'처음 하는 게임이라 쉬움부터 권해요.',up:false};
+  const last=recs[recs.length-1];
+  if(recs.slice(-3).some(r=>r.discomfortAfter)) return {d:'easy',why:'최근 운동 후 불편함을 기록하셨어요. 쉬움으로 가볍게 하세요.',up:false};
+  const cur=last.difficulty, i=ORDER.indexOf(cur);
+  const l3=recs.slice(-3);
+  if(i<2&&l3.length===3&&l3.every(r=>r.completed&&r.difficulty===cur&&r.postChecked&&!r.discomfortAfter))
+    return {d:ORDER[i+1],cur,why:`최근 ${DIFF[cur].label} 난이도를 3번 연속 불편함 없이 완료하셨어요.`,up:true};
+  return {d:cur,why:`지난번에 ${DIFF[cur].label} 난이도로 하셨어요.`,up:false};
+}
+
+/* 보상 */
+function achievementPoints(){
+  const days={};state.records.forEach(r=>{const k=ymd(r.date);days[k]=days[k]||{g:0,s:0};if(r.type==='game'&&r.completed)days[k].g++;days[k].s+=r.durationSec});
+  let pts=0;Object.values(days).forEach(d=>{if(d.g>=state.goals.dailyGames)pts++;if(d.s>=state.goals.dailyMinutes*60)pts++});
+  const weeks={};Object.keys(days).forEach(k=>{const d=new Date(k);const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));const wk=ymd(mon);weeks[wk]=(weeks[wk]||0)+1});
+  Object.values(weeks).forEach(n=>{if(n>=state.goals.weeklyDays)pts+=2});
+  return pts;
+}
+const LEVELS=[{min:0,name:'씨앗',msg:'첫 목표를 달성하면 싹이 터요.'},{min:2,name:'새싹',msg:'싹이 났어요! 계속 움직여 봐요.'},{min:6,name:'잎새',msg:'잎이 무성해졌어요.'},{min:12,name:'꽃',msg:'꽃이 피었어요. 꾸준함의 결과예요.'}];
+function level(){const p=achievementPoints();let l=0;LEVELS.forEach((L,i)=>{if(p>=L.min)l=i});const next=LEVELS[l+1];return{l,p,L:LEVELS[l],next}}
+const THEMES=[{id:'sky',name:'하늘',lv:0},{id:'mint',name:'민트',lv:1},{id:'lavender',name:'라벤더',lv:2},{id:'peach',name:'노을',lv:3}];
+function streak(){let n=0;for(let i=0;i<365;i++){const d=new Date();d.setDate(d.getDate()-i);if(dayStats(ymd(d)).n>0)n++;else if(i>0)break;else continue}return n}
+function badges(){
+  const R=state.records, games=R.filter(r=>r.type==='game');
+  const sumA=id=>games.filter(r=>r.gameId===id).reduce((a,r)=>a+(r.actions||0),0);
+  const anyDayGoal=last7().some(d=>d.games>=state.goals.dailyGames)||achievementPoints()>0;
+  return [
+    {i:'🌱',n:'첫 걸음',d:'게임 1회 완료',ok:games.some(r=>r.completed)},
+    {i:'🎯',n:'오늘의 목표',d:'하루 목표 첫 달성',ok:anyDayGoal},
+    {i:'🍉',n:'과일 장인',d:'과일 50개 썰기',ok:sumA('fruit')>=50},
+    {i:'🎈',n:'풍선 사냥꾼',d:'풍선 50개 터뜨리기',ok:sumA('balloon')>=50},
+    {i:'🧺',n:'정리 달인',d:'바구니에 30개 넣기',ok:sumA('basket')>=30},
+    {i:'🗺️',n:'탐험가',d:'5가지 게임 모두 해보기',ok:GAMES.every(g=>games.some(r=>r.gameId===g.id))},
+    {i:'🔥',n:'3일 연속',d:'3일 연속 운동',ok:streak()>=3},
+    {i:'🧘',n:'꾸준한 몸풀기',d:'재활 운동 5회',ok:R.filter(r=>r.type==='exercise').length>=5},
+  ];
+}
+function charSVG(l){
+  const leaf=(x,y,r,c)=>`<ellipse cx="${x}" cy="${y}" rx="12" ry="6" fill="${c}" transform="rotate(${r} ${x} ${y})"/>`;
+  return `<svg viewBox="0 0 120 120" aria-hidden="true">
+    <ellipse cx="60" cy="108" rx="34" ry="6" fill="#E1E7F1"/>
+    ${l>=1?`<path d="M60 44 C60 34 60 28 60 22" stroke="#1E8A71" stroke-width="4" stroke-linecap="round" fill="none"/>${leaf(70,28,-25,'#4FC2A6')}`:''}
+    ${l>=2?leaf(50,34,25,'#4FC2A6'):''}
+    ${l>=3?`<g transform="translate(60 18)">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-8" rx="5" ry="8" fill="#F5A3BC" transform="rotate(${a})"/>`).join('')}<circle r="5" fill="#F5C26B"/></g>`:''}
+    <path d="M24 78c0-22 16-36 36-36s36 14 36 36-14 28-36 28-36-6-36-28z" fill="${l>=1?'#BFE9DC':'#D9E4FA'}"/>
+    <circle cx="48" cy="76" r="4.5" fill="#1D2433"/><circle cx="72" cy="76" r="4.5" fill="#1D2433"/>
+    <circle cx="49.5" cy="74.5" r="1.4" fill="#fff"/><circle cx="73.5" cy="74.5" r="1.4" fill="#fff"/>
+    <path d="M53 86q7 6 14 0" stroke="#1D2433" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="40" cy="86" r="5" fill="#F5A3BC" opacity=".6"/><circle cx="80" cy="86" r="5" fill="#F5A3BC" opacity=".6"/>
+    ${l===0?`<ellipse cx="60" cy="40" rx="7" ry="9" fill="#C9A27A"/>`:''}
+  </svg>`;
+}
+
+/* ============ 아이콘 ============ */
+const IC={
+  play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h16"/><path d="M7 16v-5M12 16V7M17 16v-8"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+  stretch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M4 9l8 1 8-1M12 10v5l-3 6M12 15l3 6"/></svg>',
+};
+
+/* ============ 카메라 + 손 인식 ============ */
+const MP_VER='0.10.14';
+const MODEL_URL='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const cam={stream:null,video:$('#cam'),landmarker:null,running:false,W:1280,H:720,U:720,hands:[],hid:0,lastVT:-1,canvas:null,ctx:null};
+const HAND_LINKS=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+
+async function loadModel(){
+  if(cam.landmarker) return;
+  const vision=await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/vision_bundle.mjs`);
+  const files=await vision.FilesetResolver.forVisionTasks(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`);
+  const opts={baseOptions:{modelAssetPath:MODEL_URL,delegate:'GPU'},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.5,minHandPresenceConfidence:.5,minTrackingConfidence:.5};
+  try{cam.landmarker=await vision.HandLandmarker.createFromOptions(files,opts)}
+  catch(e){opts.baseOptions.delegate='CPU';cam.landmarker=await vision.HandLandmarker.createFromOptions(files,opts)}
+}
+function camError(e){
+  const n=e&&e.name;
+  if(n==='NotAllowedError'||n==='SecurityError') return {t:'카메라 권한이 거부됐어요.',fix:['브라우저 주소창 왼쪽의 자물쇠(또는 카메라) 아이콘을 누르세요.','카메라를 "허용"으로 바꾸세요.','아래 "카메라 다시 연결"을 누르세요.']};
+  if(n==='NotFoundError'||n==='OverconstrainedError') return {t:'연결된 카메라를 찾지 못했어요.',fix:['웹캠이 연결돼 있는지 확인하세요.','노트북이라면 카메라 가리개가 닫혀 있지 않은지 확인하세요.']};
+  if(n==='NotReadableError'||n==='AbortError') return {t:'다른 프로그램이 카메라를 쓰고 있어요.',fix:['화상회의 앱, 다른 브라우저 탭의 카메라를 끄세요.','"카메라 다시 연결"을 누르세요.']};
+  if(n==='insecure') return {t:'보안 연결이 아니라 카메라를 쓸 수 없어요.',fix:['https 주소로 접속하거나, 이 HTML 파일을 Chrome에서 직접 여세요.']};
+  if(n==='model') return {t:'손 인식 모델을 불러오지 못했어요.',fix:['인터넷 연결을 확인하세요. 처음 실행할 때 손 인식 모델(약 10MB)을 내려받아요.','Chrome 또는 Edge 최신 버전을 사용하세요.','"카메라 다시 연결"을 누르세요.']};
+  return {t:'카메라를 켜지 못했어요.',fix:['페이지를 새로고침한 뒤 다시 시도하세요.','Chrome 또는 Edge 최신 버전을 사용하세요.']};
+}
+async function startCamera(onStep){
+  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw {name:'insecure'};
+  onStep('perm');
+  if(!cam.stream){
+    cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});
+    cam.video.srcObject=cam.stream;
+    await new Promise(r=>{if(cam.video.readyState>=1)r();else cam.video.onloadedmetadata=()=>r()});
+    try{await cam.video.play()}catch(e){}
+  }
+  onStep('model');
+  try{await loadModel()}catch(e){console.error(e);throw {name:'model'}}
+  cam.W=cam.video.videoWidth||1280;cam.H=cam.video.videoHeight||720;cam.U=Math.min(cam.W,cam.H);
+  cam.running=true;cam.hands=[];cam.lastVT=-1;
+  onStep('ready');
+}
+function stopCamera(){
+  cam.running=false;scene=null;
+  if(cam.stream){cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null;cam.video.srcObject=null}
+}
+function bindCanvas(c){c.width=cam.W;c.height=cam.H;cam.canvas=c;cam.ctx=c.getContext('2d')}
+
+function processHands(lms,now){
+  const W=cam.W,H=cam.H,mir=state.settings.mirror,U=cam.U;const prev=cam.hands;prev.forEach(p=>p._t=false);
+  const out=lms.map(l=>{
+    const P=i=>({x:(mir?1-l[i].x:l[i].x)*W,y:l[i].y*H});
+    const pts=l.map((_,i)=>P(i));const w=pts[0],m=pts[9];
+    const palm=Math.hypot(m.x-w.x,m.y-w.y)||1;
+    const cx=(w.x+pts[5].x+m.x+pts[13].x+pts[17].x)/5, cy=(w.y+pts[5].y+m.y+pts[13].y+pts[17].y)/5;
+    const curl=[8,12,16,20].reduce((a,i)=>a+Math.hypot(pts[i].x-w.x,pts[i].y-w.y),0)/4/palm;
+    const pinch=Math.hypot(pts[4].x-pts[8].x,pts[4].y-pts[8].y)/palm;
+    return {x:cx,y:cy,r:Math.max(palm*.8,U*.05),curl,pinch,pts,t:now};
+  });
+  out.forEach(h=>{
+    let best=null,bd=1e9;prev.forEach(p=>{const d=Math.hypot(p.x-h.x,p.y-h.y);if(d<bd&&!p._t){bd=d;best=p}});
+    if(best&&bd<U*.4){best._t=true;h.id=best.id;h.px=best.x;h.py=best.y;
+      h.x=best.x*.3+h.x*.7;h.y=best.y*.3+h.y*.7;h.wasClosed=best.closed;
+      const dt=Math.max(.008,(now-best.t)/1000);h.speed=Math.hypot(h.x-h.px,h.y-h.py)/dt;
+      h.trail=[...best.trail.slice(-9),{x:h.x,y:h.y}];
+    }else{h.id=++cam.hid;h.px=h.x;h.py=h.y;h.wasClosed=false;h.speed=0;h.trail=[{x:h.x,y:h.y}]}
+    h.closed=h.wasClosed?!(h.curl>1.5&&h.pinch>.45):(h.curl<1.3||h.pinch<.3);
+  });
+  cam.hands=out;
+}
+function detect(now){
+  const v=cam.video;if(!cam.landmarker||v.readyState<2)return;
+  if(v.currentTime===cam.lastVT)return;cam.lastVT=v.currentTime;
+  try{const res=cam.landmarker.detectForVideo(v,now);processHands(res.landmarks||[],now)}catch(e){}
+}
+function drawVideo(ctx){
+  const {W,H}=cam;ctx.save();if(state.settings.mirror){ctx.translate(W,0);ctx.scale(-1,1)}
+  ctx.drawImage(cam.video,0,0,W,H);ctx.restore();ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(0,0,W,H);
+}
+function drawHands(ctx,opt={}){
+  cam.hands.forEach(h=>{
+    ctx.save();ctx.lineCap='round';ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=cam.U*.006;
+    ctx.beginPath();HAND_LINKS.forEach(([a,b])=>{ctx.moveTo(h.pts[a].x,h.pts[a].y);ctx.lineTo(h.pts[b].x,h.pts[b].y)});ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.9)';h.pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,cam.U*.007,0,7);ctx.fill()});
+    ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,7);
+    ctx.fillStyle=h.closed?'rgba(155,135,240,.35)':'rgba(127,168,245,.28)';ctx.fill();
+    ctx.lineWidth=cam.U*.007;ctx.strokeStyle=h.closed?'#6A52CF':'#3B68CF';ctx.stroke();
+    if(opt.grip){ctx.fillStyle='#fff';ctx.font=`700 ${cam.U*.03}px "IBM Plex Sans KR",sans-serif`;ctx.textAlign='center';ctx.fillText(h.closed?'쥠':'폄',h.x,h.y+cam.U*.012)}
+    ctx.restore();
+  });
+}
+
+/* ============ 효과 ============ */
+function makeFx(U){
+  const P=[],T=[],Rg=[];let flash=0,flashC='rgba(217,67,92,.35)';
+  return{
+    burst(x,y,c,n=14,sp=1){for(let i=0;i<n;i++){const a=Math.random()*7,s=(.3+Math.random())*U*.6*sp;P.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-U*.2,life:.7+Math.random()*.4,max:1,c,sz:U*(.008+Math.random()*.012)})}},
+    text(x,y,t,c='#1E8A71'){T.push({x,y,t,c,life:1})},
+    ring(x,y,r,c='#fff'){Rg.push({x,y,r,c,life:.45})},
+    flash(c){flash=.5;if(c)flashC=c},
+    update(dt){
+      for(let i=P.length-1;i>=0;i--){const p=P[i];p.life-=dt;p.vy+=U*1.4*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.life<=0)P.splice(i,1)}
+      for(let i=T.length-1;i>=0;i--){T[i].life-=dt*.9;T[i].y-=U*.12*dt;if(T[i].life<=0)T.splice(i,1)}
+      for(let i=Rg.length-1;i>=0;i--){Rg[i].life-=dt;if(Rg[i].life<=0)Rg.splice(i,1)}
+      flash=Math.max(0,flash-dt);
+    },
+    draw(ctx){
+      Rg.forEach(r=>{const k=1-r.life/.45;ctx.save();ctx.globalAlpha=1-k;ctx.strokeStyle=r.c;ctx.lineWidth=U*.012*(1-k)+1;ctx.beginPath();ctx.arc(r.x,r.y,r.r*(1+k*.9),0,7);ctx.stroke();ctx.restore()});
+      P.forEach(p=>{ctx.globalAlpha=Math.max(0,Math.min(1,p.life*1.5));ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,7);ctx.fill()});ctx.globalAlpha=1;
+      T.forEach(t=>{ctx.save();ctx.globalAlpha=Math.min(1,t.life*1.6);ctx.font=`${U*.065}px Jua,"IBM Plex Sans KR",sans-serif`;ctx.textAlign='center';ctx.lineWidth=U*.012;ctx.strokeStyle='#fff';ctx.strokeText(t.t,t.x,t.y);ctx.fillStyle=t.c;ctx.fillText(t.t,t.x,t.y);ctx.restore()});
+      if(flash>0){ctx.fillStyle=flashC;ctx.globalAlpha=flash*1.4;ctx.fillRect(0,0,cam.W,cam.H);ctx.globalAlpha=1}
+    }
+  };
+}
+
+/* ============ 게임 공통 도우미 ============ */
+const rand=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function segDist(p1,p2,c){const dx=p2.x-p1.x,dy=p2.y-p1.y,l=dx*dx+dy*dy;let t=l?((c.x-p1.x)*dx+(c.y-p1.y)*dy)/l:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p1.x+t*dx-c.x,p1.y+t*dy-c.y)}
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+function emoji(ctx,e,x,y,size){ctx.font=`${size}px ${EMOJI_FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e,x,y)}
+function spawnPoint(env,margin){const {W,H,diff}=env;const m=margin||env.U*.1;
+  return{x:Math.max(m,Math.min(W-m,W/2+rand(-.5,.5)*W*diff.region)),y:Math.max(m,Math.min(H-m,H/2+rand(-.5,.5)*H*diff.region))}}
+function label(ctx,U,text,x,y,bg='rgba(255,255,255,.92)',fg='#1D2433'){
+  ctx.save();ctx.font=`700 ${U*.032}px "IBM Plex Sans KR",sans-serif`;const w=ctx.measureText(text).width+U*.04,h=U*.055;
+  ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-h/2,w,h,h/2):ctx.rect(x-w/2,y-h/2,w,h);ctx.fill();
+  ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y+1);ctx.restore()}
+function arc(ctx,x,y,r,p,c='#1E8A71'){ctx.save();ctx.lineWidth=r*.16;ctx.lineCap='round';ctx.strokeStyle='rgba(255,255,255,.7)';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();ctx.strokeStyle=c;ctx.beginPath();ctx.arc(x,y,r,-Math.PI/2,-Math.PI/2+p*Math.PI*2);ctx.stroke();ctx.restore()}
+
+/* 잡기/놓기 (Basket, Move 공용) */
+function grabLogic(S,env,hands,dt,item,overDrop){
+  const mode=env.opts.grabMode, dwellT=env.diff.dwell;
+  if(S.hold==null){
+    const h=hands.find(h=>dist(h,item)<item.r*env.diff.hitPad+h.r*.45);
+    S.near=!!h;
+    if(!h){S.dwell=0;return null}
+    if(mode==='grip'){if(h.closed){S.hold=h.id;S.dwell=0;SFX.grab();return'grab'}return null}
+    S.dwell+=dt;if(S.dwell>=dwellT){S.hold=h.id;S.dwell=0;SFX.grab();return'grab'}return null;
+  }
+  let h=hands.find(h=>h.id===S.hold);
+  if(!h){const n=hands.find(x=>dist(x,item)<x.r*2.2);if(n){S.hold=n.id;h=n}}
+  if(!h){S.lost=(S.lost||0)+dt;if(S.lost>.7){S.hold=null;S.lost=0;S.dwell=0;return'drop'}return'hold'}
+  S.lost=0;const k=Math.min(1,dt*16);item.x+=(h.x-item.x)*k;item.y+=(h.y-item.y)*k;
+  if(mode==='grip'){if(!h.closed){S.hold=null;return'release'}return'hold'}
+  if(overDrop(item)){S.dwell+=dt;if(S.dwell>=dwellT*.8){S.hold=null;S.dwell=0;return'release'}}else S.dwell=0;
+  return'hold';
+}
+function grabHint(env){return env.opts.grabMode==='grip'?'손을 쥐어서 잡아요':'손을 올리고 잠시 기다려요'}
+function dropHint(env){return env.opts.grabMode==='grip'?'손을 펴서 놓아요':'놓을 곳 위에서 잠시 멈춰요'}
+
+/* ============ 게임 1: 과일 썰기 ============ */
+const IMPL={};
+IMPL.fruit=env=>{
+  const {U,diff}=env;const FR=[['🍉','#F2557A'],['🍎','#E8423F'],['🍌','#F5D04C'],['🍊','#F59A2E'],['🍇','#8E5BD8'],['🍓','#E8425F']];
+  const fruits=[],pieces=[];let spawnT=.3;
+  const self={score:0,actions:0,done:false,bombs:0,
+    progress:()=>`${self.actions}개`,progLabel:'썬 과일',
+    update(dt,hands){
+      spawnT-=dt;
+      if(spawnT<=0&&fruits.length<diff.count+1){
+        const bomb=env.opts.bomb&&Math.random()<.22;const p=spawnPoint(env,U*.12);const t=pick(FR);
+        fruits.push({...p,vx:rand(-1,1)*U*.06*diff.speed,vy:rand(-1,1)*U*.05*diff.speed,r:U*.075*diff.size,e:bomb?'💣':t[0],c:t[1],bomb,age:0,life:diff.life+(bomb?-1:0),wob:rand(0,6)});
+        spawnT=1.5/diff.speed;
+      }
+      fruits.forEach(f=>{f.age+=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;
+        const m=f.r;if(f.x<m||f.x>env.W-m)f.vx*=-1;if(f.y<m||f.y>env.H-m)f.vy*=-1});
+      for(let i=fruits.length-1;i>=0;i--)if(fruits[i].age>fruits[i].life)fruits.splice(i,1);
+      const minSp=U*diff.slice;
+      hands.forEach(h=>{
+        if(h.speed<minSp)return;const a={x:h.px,y:h.py},b={x:h.x,y:h.y};
+        for(let i=fruits.length-1;i>=0;i--){const f=fruits[i];if(f.age<.25)continue;
+          if(segDist(a,b,f)<f.r*diff.hitPad*.9+h.r*.35){fruits.splice(i,1);cut(f,Math.atan2(b.y-a.y,b.x-a.x))}}
+      });
+      pieces.forEach(p=>{p.age+=dt;p.vy+=U*1.6*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt});
+      for(let i=pieces.length-1;i>=0;i--)if(pieces[i].age>1.3)pieces.splice(i,1);
+    },
+    draw(ctx){
+      fruits.forEach(f=>{const k=Math.min(1,f.age/.3),fade=Math.min(1,(f.life-f.age)/.6);
+        ctx.save();ctx.globalAlpha=fade;ctx.translate(f.x,f.y+Math.sin(f.age*2+f.wob)*U*.008);ctx.scale(k,k);
+        ctx.fillStyle=f.bomb?'rgba(217,67,92,.28)':'rgba(255,255,255,.55)';ctx.beginPath();ctx.arc(0,0,f.r*1.05,0,7);ctx.fill();
+        if(f.bomb){ctx.strokeStyle='#D9435C';ctx.lineWidth=U*.006;ctx.setLineDash([U*.015,U*.012]);ctx.stroke();ctx.setLineDash([])}
+        emoji(ctx,f.e,0,f.r*.06,f.r*1.55);ctx.restore()});
+      pieces.forEach(p=>{ctx.save();ctx.globalAlpha=Math.max(0,1-p.age/1.3);ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.rotate(p.cut);
+        ctx.beginPath();ctx.rect(-p.r*1.3,p.side>0?0:-p.r*1.3,p.r*2.6,p.r*1.3);ctx.clip();ctx.rotate(-p.cut);emoji(ctx,p.e,0,p.r*.06,p.r*1.55);ctx.restore()});
+    },
+    drawHands(ctx){cam.hands.forEach(h=>{const tr=h.trail;if(tr.length<2)return;ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+      for(let i=1;i<tr.length;i++){const k=i/tr.length;ctx.strokeStyle=`rgba(79,194,166,${k*.9})`;ctx.lineWidth=U*.03*k;ctx.beginPath();ctx.moveTo(tr[i-1].x,tr[i-1].y);ctx.lineTo(tr[i].x,tr[i].y);ctx.stroke()}ctx.restore()})}
+  };
+  function cut(f,ang){
+    if(f.bomb){self.score=Math.max(0,self.score-15);self.bombs++;SFX.bomb();env.fx.flash();env.fx.burst(f.x,f.y,'#555',22,1.2);env.fx.text(f.x,f.y-f.r,'-15','#D9435C');return}
+    self.score+=10;self.actions++;SFX.slice();
+    const n={x:-Math.sin(ang),y:Math.cos(ang)};const sp=U*.35;
+    [1,-1].forEach(s=>pieces.push({x:f.x,y:f.y,r:f.r,e:f.e,side:s,cut:ang,rot:0,vr:s*rand(2,4),vx:n.x*s*sp+Math.cos(ang)*U*.15,vy:n.y*s*sp-U*.25,age:0}));
+    env.fx.burst(f.x,f.y,f.c,16);env.fx.ring(f.x,f.y,f.r,'#fff');env.fx.text(f.x,f.y-f.r,'+10');
+  }
+  return self;
+};
+
+/* ============ 게임 2: 바구니에 넣기 ============ */
+IMPL.basket=env=>{
+  const {W,H,U,diff,key}=env;const ITEMS=[['🍎','사과'],['⚽','공'],['🧱','블록'],['🧸','장난감'],['📦','작은 상자']];
+  const target={easy:8,normal:10,hard:12}[key];
+  const basket={x:W/2,y:H-U*.2,r:U*.16*Math.max(.9,diff.size*.85)};
+  let item=null,wait=.4,S={hold:null,dwell:0};
+  const self={score:0,actions:0,done:false,progress:()=>`${self.actions}/${target}`,progLabel:'넣은 물건',
+    update(dt,hands){
+      if(!item){wait-=dt;if(wait<=0)next();return}
+      item.age+=dt;
+      if(item.st==='ret'){item.x+=(item.ox-item.x)*Math.min(1,dt*6);item.y+=(item.oy-item.y)*Math.min(1,dt*6);if(dist(item,{x:item.ox,y:item.oy})<4)item.st='idle';return}
+      if(item.st==='in'){item.t+=dt;item.x+=(basket.x-item.x)*Math.min(1,dt*8);item.y+=(basket.y-item.y)*Math.min(1,dt*8);if(item.t>.5){item=null;wait=.5;if(self.actions>=target)self.done=true}return}
+      const r=grabLogic(S,env,hands,dt,item,it=>dist(it,basket)<basket.r);
+      item.held=S.hold!=null;
+      if(r==='release'||r==='drop'){
+        if(r==='release'&&dist(item,basket)<basket.r*1.05){self.actions++;self.score+=10;SFX.ding();env.fx.burst(basket.x,basket.y-basket.r*.4,'#4FC2A6',14);env.fx.text(basket.x,basket.y-basket.r,'+10');item.st='in';item.t=0}
+        else{item.st='ret';SFX.miss();env.fx.text(item.x,item.y-item.r,'바구니 위에서!','#3B68CF')}
+      }
+    },
+    draw(ctx){
+      const over=item&&item.held&&dist(item,basket)<basket.r;
+      ctx.save();ctx.fillStyle=over?'rgba(79,194,166,.45)':'rgba(255,255,255,.55)';ctx.strokeStyle=over?'#1E8A71':'rgba(59,104,207,.8)';ctx.lineWidth=U*.007;ctx.setLineDash([U*.02,U*.014]);
+      ctx.beginPath();ctx.arc(basket.x,basket.y,basket.r,0,7);ctx.fill();ctx.stroke();ctx.restore();
+      emoji(ctx,'🧺',basket.x,basket.y,basket.r*1.25);
+      if(item){
+        ctx.save();ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(item.x,item.y+item.r*1.05,item.r*.8,item.r*.22,0,0,7);ctx.fill();ctx.restore();
+        if(!item.held&&item.st==='idle'){ctx.save();ctx.fillStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.arc(item.x,item.y,item.r*1.15,0,7);ctx.fill();ctx.restore()}
+        emoji(ctx,item.e,item.x,item.y,item.r*1.6);
+        if(item.st==='idle'){
+          if(S.dwell>0)arc(ctx,item.x,item.y,item.r*1.3,Math.min(1,S.dwell/(item.held?env.diff.dwell*.8:env.diff.dwell)));
+          label(ctx,U,item.held?dropHint(env):`${item.name} · ${grabHint(env)}`,item.x,item.y-item.r*1.7);
+        }
+      }
+    }
+  };
+  function next(){
+    const t=ITEMS[self.actions%ITEMS.length];
+    if(key!=='easy')basket.x=W*pick([.22,.5,.78]);
+    let p,tries=0;do{p=spawnPoint(env,U*.12);p.y=Math.min(p.y,H*.55);tries++}while(Math.abs(p.x-basket.x)<U*.22&&key!=='easy'&&tries<20);
+    item={...p,ox:p.x,oy:p.y,r:U*.08*diff.size,e:t[0],name:t[1],age:0,st:'idle'};S={hold:null,dwell:0};
+  }
+  self.drawHandsOpt={grip:true};
+  return self;
+};
+
+/* ============ 게임 3: 목표물 터치 ============ */
+IMPL.target=env=>{
+  const {U,diff,key}=env;const n=key==='easy'?2:3;const targets=[];let respawn=[];
+  const self={score:0,actions:0,done:false,progress:()=>`${self.actions}개`,progLabel:'맞힌 목표',
+    update(dt,hands){
+      while(targets.length+respawn.length<n)respawn.push(.2);
+      respawn=respawn.map(t=>t-dt);while(respawn.length&&respawn[0]<=0){respawn.shift();spawn(hands)}
+      targets.forEach(t=>{t.age+=dt;if(key==='hard'){t.x+=t.vx*dt;t.y+=t.vy*dt;if(t.x<t.r||t.x>env.W-t.r)t.vx*=-1;if(t.y<t.r||t.y>env.H-t.r)t.vy*=-1}});
+      for(let i=targets.length-1;i>=0;i--){const t=targets[i];if(t.age<.35)continue;
+        if(hands.some(h=>dist(h,t)<t.r*diff.hitPad+h.r*.4)){targets.splice(i,1);self.actions++;self.score+=10;SFX.ding();env.fx.ring(t.x,t.y,t.r,'#9B87F0');env.fx.burst(t.x,t.y,'#7FA8F5',12);env.fx.text(t.x,t.y-t.r,'+10','#6A52CF');respawn.push(.45)}}
+    },
+    draw(ctx){targets.forEach(t=>{const k=Math.min(1,t.age/.3),pulse=1+Math.sin(t.age*4)*.04;ctx.save();ctx.translate(t.x,t.y);ctx.scale(k*pulse,k*pulse);
+      [[1,'rgba(255,255,255,.92)'],[.78,'#9B87F0'],[.56,'#ffffff'],[.34,'#3B68CF']].forEach(([s,c])=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(0,0,t.r*s,0,7);ctx.fill()});
+      ctx.restore()})}
+  };
+  function spawn(hands){
+    let p,tries=0;
+    do{p=spawnPoint(env,U*.12);tries++}while(tries<25&&(hands.some(h=>dist(h,p)<U*.25)||targets.some(t=>dist(t,p)<U*.25)));
+    targets.push({...p,r:U*.085*diff.size,age:0,vx:rand(-1,1)*U*.05,vy:rand(-1,1)*U*.05});
+  }
+  return self;
+};
+
+/* ============ 게임 4: 풍선 터뜨리기 ============ */
+IMPL.balloon=env=>{
+  const {W,H,U,diff}=env;const COLORS=[['#7FA8F5','#3B68CF'],['#4FC2A6','#1E8A71'],['#9B87F0','#6A52CF'],['#F5A3BC','#D45C82'],['#F5C26B','#C98A1E']];
+  const balloons=[];let spawnT=.2;
+  const self={score:0,actions:0,done:false,progress:()=>`${self.actions}개`,progLabel:'터뜨린 풍선',
+    update(dt,hands){
+      spawnT-=dt;if(spawnT<=0&&balloons.length<diff.count+2){
+        const r=U*.075*diff.size,c=pick(COLORS);const x=Math.max(r*1.5,Math.min(W-r*1.5,W/2+rand(-.5,.5)*W*diff.region));
+        balloons.push({x,bx:x,y:H+r*2,r,c,t:rand(0,6),vy:U*.13*diff.speed*rand(.85,1.15)});spawnT=1.4/diff.speed}
+      balloons.forEach(b=>{b.t+=dt;b.y-=b.vy*dt;b.x=b.bx+Math.sin(b.t*1.3)*U*.03});
+      for(let i=balloons.length-1;i>=0;i--){const b=balloons[i];
+        if(b.y<-b.r*3){balloons.splice(i,1);continue}
+        if(b.y<H-b.r&&hands.some(h=>dist(h,b)<b.r*diff.hitPad+h.r*.35)){balloons.splice(i,1);self.actions++;self.score+=10;SFX.pop();env.fx.burst(b.x,b.y,b.c[0],20,1.1);env.fx.ring(b.x,b.y,b.r,b.c[0]);env.fx.text(b.x,b.y-b.r,'+10',b.c[1])}}
+    },
+    draw(ctx){balloons.forEach(b=>{ctx.save();ctx.translate(b.x,b.y);
+      ctx.strokeStyle='rgba(40,48,66,.55)';ctx.lineWidth=U*.004;ctx.beginPath();ctx.moveTo(0,b.r*1.22);ctx.quadraticCurveTo(Math.sin(b.t*2)*b.r*.35,b.r*1.9,0,b.r*2.6);ctx.stroke();
+      const g=ctx.createRadialGradient(-b.r*.35,-b.r*.45,b.r*.08,0,0,b.r*1.25);g.addColorStop(0,'#ffffff');g.addColorStop(.28,b.c[0]);g.addColorStop(1,b.c[1]);
+      ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,b.r,b.r*1.18,0,0,7);ctx.fill();
+      ctx.fillStyle=b.c[1];ctx.beginPath();ctx.moveTo(-b.r*.12,b.r*1.27);ctx.lineTo(b.r*.12,b.r*1.27);ctx.lineTo(0,b.r*1.12);ctx.fill();ctx.restore()})}
+  };
+  return self;
+};
+
+/* ============ 게임 5: 좌우 물건 옮기기 ============ */
+IMPL.move=env=>{
+  const {W,H,U,diff,key}=env;const stages={easy:6,normal:8,hard:10}[key];const spread={easy:.24,normal:.31,hard:.37}[key];
+  const zr=U*.15*Math.max(.85,diff.size*.85);
+  const zones={L:{x:W*(.5-spread),y:H*.55,r:zr,name:'왼쪽'},R:{x:W*(.5+spread),y:H*.55,r:zr,name:'오른쪽'}};
+  const ITEMS=['📦','🧸','🍎','⚽','🧱'];
+  let item=null,side='L',wait=.4,S={hold:null,dwell:0},stage=0;
+  const self={score:0,actions:0,done:false,progress:()=>`${stage}/${stages}`,progLabel:'완료한 단계',
+    timeMul:1.4,
+    update(dt,hands){
+      if(!item){wait-=dt;if(wait<=0)next();return}
+      item.age+=dt;
+      if(item.st==='ret'){item.x+=(item.ox-item.x)*Math.min(1,dt*6);item.y+=(item.oy-item.y)*Math.min(1,dt*6);if(dist(item,{x:item.ox,y:item.oy})<4)item.st='idle';return}
+      if(item.st==='ok'){item.t+=dt;if(item.t>.7){item=null;wait=.4;if(stage>=stages)self.done=true}return}
+      const z=zones[side];
+      const r=grabLogic(S,env,hands,dt,item,it=>dist(it,z)<z.r);item.held=S.hold!=null;
+      if(r==='release'||r==='drop'){
+        const other=zones[side==='L'?'R':'L'];
+        if(r==='release'&&dist(item,z)<z.r*1.05){stage++;self.actions++;self.score+=10;item.x=z.x;item.y=z.y;item.st='ok';item.t=0;SFX.ding();env.fx.burst(z.x,z.y,'#4FC2A6',16);env.fx.text(z.x,z.y-z.r,`${stage}단계 완료!`)}
+        else{item.st='ret';SFX.miss();env.fx.text(item.x,item.y-item.r,r==='release'&&dist(item,other)<other.r?'반대쪽이에요':'표시된 자리에 놓아요','#3B68CF')}
+      }
+    },
+    draw(ctx){
+      ['L','R'].forEach(k=>{const z=zones[k],on=k===side&&item&&item.st!=='ok';ctx.save();
+        ctx.fillStyle=on?'rgba(79,194,166,.4)':'rgba(255,255,255,.35)';ctx.strokeStyle=on?'#1E8A71':'rgba(255,255,255,.8)';ctx.lineWidth=U*.008;ctx.setLineDash(on?[]:[U*.02,U*.015]);
+        ctx.beginPath();ctx.roundRect?ctx.roundRect(z.x-z.r,z.y-z.r,z.r*2,z.r*2,U*.04):ctx.rect(z.x-z.r,z.y-z.r,z.r*2,z.r*2);ctx.fill();ctx.stroke();ctx.restore();
+        if(on)label(ctx,U,`여기로 (${z.name})`,z.x,z.y-z.r-U*.05,'#1E8A71','#fff')});
+      if(item){
+        if(item.st==='idle'&&!item.held){const z=zones[side];ctx.save();ctx.strokeStyle='rgba(30,138,113,.9)';ctx.lineWidth=U*.012;ctx.setLineDash([U*.02,U*.02]);ctx.beginPath();ctx.moveTo(item.x+(z.x>item.x?1:-1)*item.r*1.3,item.y);ctx.lineTo(z.x-(z.x>item.x?1:-1)*z.r*1.05,z.y);ctx.stroke();ctx.restore()}
+        if(!item.held&&item.st==='idle'){ctx.save();ctx.fillStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.arc(item.x,item.y,item.r*1.15,0,7);ctx.fill();ctx.restore()}
+        emoji(ctx,item.e,item.x,item.y,item.r*1.6);
+        if(item.st==='idle'){if(S.dwell>0)arc(ctx,item.x,item.y,item.r*1.3,Math.min(1,S.dwell/(item.held?env.diff.dwell*.8:env.diff.dwell)));
+          label(ctx,U,item.held?dropHint(env):grabHint(env),item.x,item.y-item.r*1.7)}
+      }
+    }
+  };
+  function next(){side=Math.random()<.5?'L':'R';const x=W/2,y=H*.42;item={x,y,ox:x,oy:y,r:U*.08*diff.size,e:ITEMS[stage%ITEMS.length],age:0,st:'idle'};S={hold:null,dwell:0};
+    speak(`${zones[side].name}으로 옮겨 주세요`)}
+  self.drawHandsOpt={grip:true};
+  return self;
+};
+
+/* ============ 렌더 루프 ============ */
+let scene=null,lastT=0;
+function loop(t){
+  requestAnimationFrame(loop);
+  const dt=Math.min(.05,lastT?(t-lastT)/1000:.016);lastT=t;
+  if(!cam.running||!scene)return;
+  detect(t);scene.frame(dt,t);
+}
+requestAnimationFrame(loop);
+
+/* ============ 라우팅 ============ */
+let current={name:null,params:{}};
+let session={pre:null};
+function go(name,params={}){
+  if(!(current.name==='setup'&&name==='game')) stopCamera();
+  if(window.speechSynthesis)try{speechSynthesis.cancel()}catch(e){}
+  if(exTimer){clearInterval(exTimer);exTimer=null}
+  current={name,params};
+  document.body.classList.toggle('in-game',name==='game');
+  const v=VIEWS[name];$('#view').innerHTML=v.html(params);v.mount&&v.mount(params);
+  window.scrollTo(0,0);$('#view').focus({preventScroll:true});
+}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const back=(to='main',txt='메인으로')=>`<button class="back" data-go="${to}">← ${txt}</button>`;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){e.preventDefault();const p=b.dataset.param?JSON.parse(b.dataset.param):{};go(b.dataset.go,p)}});
+
+function gameCard(g,why,rec){
+  return `<article class="card game-card">
+    <div class="gc-top"><div class="game-emoji bg-${g.color}" aria-hidden="true">${g.icon}</div>
+      <div style="min-width:0"><div class="en">${g.name}</div><h3>${g.ko}</h3></div></div>
+    <p class="muted small">${g.desc}</p>
+    <div class="meta">${g.moves.map(m=>`<span class="pill blue">${m}</span>`).join('')}</div>
+    <div class="meta"><span class="pill">난이도 쉬움·보통·어려움</span><span class="pill">약 1~2분</span>${rec?`<span class="pill mint">권장: ${DIFF[rec.d].label}</span>`:''}</div>
+    ${why&&why.length?`<p class="why">선택하신 「${why.slice(0,3).join('」·「')}」와 관련된 동작이 들어 있어요</p>`:''}
+    <button class="btn btn-primary btn-block" data-go="setup" data-param='${JSON.stringify({id:g.id})}'>${IC.play.replace('<svg','<svg width="22" height="22"')} 게임 시작</button>
+  </article>`;
+}
+function checkForm(prefix){
+  const yn=(name,label,a,b,va='no',vb='yes')=>`<fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px"><legend class="field-label" style="padding:0;margin-bottom:8px">${label}</legend>
+    <div class="seg"><label class="chip"><input type="radio" name="${prefix}${name}" value="${va}" id="${prefix}${name}-${va}"><span>${a}</span></label>
+    <label class="chip"><input type="radio" name="${prefix}${name}" value="${vb}" id="${prefix}${name}-${vb}"><span>${b}</span></label></div></fieldset>`;
+  return `<label class="field" for="${prefix}fatigue"><span>현재 피로도 <output id="${prefix}fatigueOut" class="num" style="color:var(--blue-deep)">3</output> / 10</span>
+      <input type="range" min="0" max="10" value="3" id="${prefix}fatigue" name="${prefix}fatigue"><span class="row small muted" style="justify-content:space-between"><span>0 전혀 없음</span><span>10 매우 피곤</span></span></label>
+    ${yn('disc','운동 중 불편함이 있나요?','없어요','있어요')}
+    ${yn('pain','통증이 있나요?','없어요','있어요')}
+    ${yn('cont','운동을 계속할 수 있나요?','아니요','네, 할 수 있어요','stop','ok')}`;
+}
+function readCheck(form,prefix){
+  const fd=new FormData(form);const get=k=>fd.get(prefix+k);
+  const c={fatigue:+get('fatigue'),disc:get('disc'),pain:get('pain'),cont:get('cont')};
+  c.filled=!!(c.disc&&c.pain&&c.cont);return c;
+}
+function bindRangeOut(prefix){const r=$('#'+prefix+'fatigue'),o=$('#'+prefix+'fatigueOut');if(r)r.addEventListener('input',()=>o.textContent=r.value)}
+
+/* ============ 화면 ============ */
+const VIEWS={};
+
+/* 1. 시작 */
+VIEWS.start={html:()=>`
+  <div class="stack">
+    <section class="hero">
+      <div class="stack" style="gap:16px">
+        <span class="eyebrow">카메라로 하는 재활 게임</span>
+        <h1>Re:Move <span style="color:var(--blue-deep)">리무브</span></h1>
+        <p class="tag">손과 팔을 움직이면 게임이 반응해요. 매일 조금씩, 즐겁게 다시 움직여요.</p>
+        <ul class="feature-list"><li>웹캠으로 손 위치를 실시간 인식</li><li>나에게 맞춘 재활 게임 5가지</li><li>운동 기록 · 목표 · 피로도 체크</li></ul>
+        <div class="row"><button class="btn btn-primary" id="startBtn">${state.profile?'이어서 시작하기':'시작하기'}</button>
+        ${state.profile?'':''}</div>
+      </div>
+      <div aria-hidden="true" style="display:grid;place-items:center">
+        <svg viewBox="0 0 260 220" style="width:100%;max-width:340px">
+          <rect x="20" y="20" width="220" height="150" rx="24" fill="#fff"/>
+          <rect x="34" y="34" width="192" height="122" rx="16" fill="#E7EFFE"/>
+          <circle cx="90" cy="92" r="20" fill="#9B87F0" opacity=".85"/><circle cx="160" cy="70" r="16" fill="#4FC2A6"/><circle cx="185" cy="118" r="12" fill="#7FA8F5"/>
+          <path d="M60 130c20-30 40-50 70-60" stroke="#1E8A71" stroke-width="7" stroke-linecap="round" fill="none" opacity=".55"/>
+          <circle cx="130" cy="70" r="15" fill="none" stroke="#3B68CF" stroke-width="4"/>
+          <rect x="100" y="178" width="60" height="10" rx="5" fill="#fff"/><rect x="118" y="168" width="24" height="14" fill="#fff"/>
+        </svg>
+      </div>
+    </section>
+    <div class="notice"><span>ⓘ</span><span>Re:Move는 의료기기가 아니며 질병을 진단하거나 치료 강도를 정하지 않아요. 실제 재활 운동은 담당 의료진의 안내를 따르세요.</span></div>
+  </div>`,
+  mount(){$('#startBtn').onclick=()=>{audio();go(state.profile?'main':'profile')};speak('리무브에 오신 것을 환영해요. 시작하기 버튼을 눌러 주세요.')}};
+
+/* 2. 사용자 정보 */
+VIEWS.profile={html:()=>{const p=state.profile||{name:'',age:'',parts:[],purposes:[],discomfort:'',caution:''};return `
+  <form class="stack" id="pf" novalidate>
+    ${state.profile?back('settings','설정으로'):''}
+    <div class="page-head"><span class="eyebrow">${state.profile?'정보 수정':'처음 오셨군요'}</span><h1>나의 재활 정보</h1>
+      <p class="muted">입력한 정보는 게임을 추천하는 데만 쓰이고, 이 기기 브라우저에만 저장돼요.</p></div>
+    <div class="grid">
+      <label class="field" for="pName">이름<input type="text" id="pName" name="name" value="${esc(p.name)}" autocomplete="name" placeholder="예: 김하늘"></label>
+      <label class="field" for="pAge">나이<input type="number" id="pAge" name="age" min="1" max="120" inputmode="numeric" value="${esc(p.age)}" placeholder="예: 58"></label>
+    </div>
+    <fieldset class="panel" style="border:0"><legend class="field-label" style="float:left;width:100%;margin-bottom:8px">불편한 신체 부위 <span class="muted small">(여러 개 선택 가능)</span></legend>
+      <div class="chips">${PARTS.map((x,i)=>`<label class="chip"><input type="checkbox" name="parts" value="${x}" id="part${i}" ${p.parts.includes(x)?'checked':''}><span>${x}</span></label>`).join('')}</div></fieldset>
+    <fieldset class="panel" style="border:0"><legend class="field-label" style="float:left;width:100%;margin-bottom:8px">재활 목적 <span class="muted small">(여러 개 선택 가능)</span></legend>
+      <div class="chips">${PURPOSES.map((x,i)=>`<label class="chip"><input type="checkbox" name="purposes" value="${x}" id="pur${i}" ${p.purposes.includes(x)?'checked':''}><span>${x}</span></label>`).join('')}</div></fieldset>
+    <label class="field" for="pDisc">현재 움직임의 불편함<textarea id="pDisc" name="discomfort" placeholder="예: 오른손으로 컵을 잡기 어려워요">${esc(p.discomfort)}</textarea></label>
+    <label class="field" for="pCaut">운동 시 주의사항<textarea id="pCaut" name="caution" placeholder="예: 의료진이 어깨 위로 팔을 올리지 말라고 했어요">${esc(p.caution)}</textarea></label>
+    <p class="err" id="pfErr" role="alert"></p>
+    <button class="btn btn-primary btn-block" type="submit">저장하고 계속하기</button>
+  </form>`},
+  mount(){$('#pf').onsubmit=e=>{e.preventDefault();const fd=new FormData(e.target);
+    const p={name:(fd.get('name')||'').trim(),age:(fd.get('age')||'').trim(),parts:fd.getAll('parts'),purposes:fd.getAll('purposes'),discomfort:(fd.get('discomfort')||'').trim(),caution:(fd.get('caution')||'').trim()};
+    const err=!p.name?'이름을 입력해 주세요.':(p.age&&(+p.age<1||+p.age>120))?'나이를 1~120 사이 숫자로 입력해 주세요.':!p.parts.length?'불편한 신체 부위를 하나 이상 골라 주세요.':!p.purposes.length?'재활 목적을 하나 이상 골라 주세요.':'';
+    if(err){$('#pfErr').textContent=err;speak(err);return}
+    const first=!state.profile;state.profile=p;save('profile');toast('저장했어요');go(first?'main':'settings')};
+    if(!state.profile)speak('이름과 불편한 부위, 재활 목적을 입력해 주세요.')}};
+
+/* 3. 메인 */
+VIEWS.main={html:()=>{
+  const t=todayStats(),g=state.goals,p=state.profile||{name:''};const pct=Math.min(1,t.games/g.dailyGames);
+  const recs=recommend().filter(r=>r.score>0).slice(0,2);const L=level();
+  const C=2*Math.PI*54;
+  return `<div class="stack">
+    <div class="page-head"><span class="eyebrow">${fmtDate(new Date())}</span><h1>안녕하세요, ${esc(p.name)}님</h1></div>
+    <section class="today theme-${state.theme}" aria-label="오늘의 재활 운동">
+      <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" stroke="#ffffff" stroke-width="12" fill="none"/>
+        <circle cx="60" cy="60" r="54" stroke="#4FC2A6" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg>
+        <div class="ring-txt"><div><span class="num">${t.games}/${g.dailyGames}</span><small>완료한 게임</small></div></div></div>
+      <div class="stack" style="gap:12px">
+        <h2>오늘의 재활 운동</h2>
+        <div class="stat-row">
+          <div class="stat"><b class="num">${t.games} / ${g.dailyGames}</b><span>완료한 게임</span></div>
+          <div class="stat"><b class="num">${minText(t.sec)}</b><span>운동 시간</span></div>
+          <div class="stat"><b>게임 ${g.dailyGames}개</b><span>오늘의 목표</span></div>
+        </div>
+        <p class="small muted">${t.games>=g.dailyGames?'오늘 목표를 달성했어요! 무리하지 말고 쉬어 가세요.':`목표까지 게임 ${g.dailyGames-t.games}개 남았어요.`}</p>
+      </div>
+    </section>
+    <div class="grid-3">
+      <button class="tile" data-go="recommend"><span class="ti mint">${IC.star}</span><span><b>나에게 추천하는 게임</b><span>입력한 부위·목적 기반</span></span></button>
+      <button class="tile" data-go="games"><span class="ti blue">${IC.grid}</span><span><b>전체 재활 게임</b><span>5가지 카메라 게임</span></span></button>
+      <button class="tile" data-go="exercises"><span class="ti violet">${IC.stretch}</span><span><b>간단한 재활 운동</b><span>따라 하는 맨손 운동</span></span></button>
+      <button class="tile" data-go="records"><span class="ti blue">${IC.chart}</span><span><b>운동 기록</b><span>날짜별·주간 그래프</span></span></button>
+      <button class="tile" data-go="goals"><span class="ti mint">${IC.flag}</span><span><b>재활 목표</b><span>${L.L.name} 단계 · 배지</span></span></button>
+      <button class="tile" data-go="settings"><span class="ti violet">${IC.user}</span><span><b>사용자 정보</b><span>정보 수정 · 설정</span></span></button>
+    </div>
+    ${recs.length?`<section class="stack" style="gap:12px"><div class="row" style="justify-content:space-between"><h2>추천 게임</h2><button class="btn btn-ghost" data-go="recommend" style="min-height:44px">더 보기</button></div>
+      <div class="grid">${recs.map(r=>gameCard(r.g,r.why,recommendDiff(r.g.id))).join('')}</div></section>`:''}
+  </div>`},
+  mount(){const t=todayStats();speak(`오늘 완료한 게임은 ${t.games}개예요. 목표는 ${state.goals.dailyGames}개예요.`)}};
+
+/* 4. 추천 */
+VIEWS.recommend={html:()=>{const all=recommend();const rec=all.filter(r=>r.score>0),rest=all.filter(r=>r.score===0);const p=state.profile;
+  return `<div class="stack">${back()}
+    <div class="page-head"><span class="eyebrow">맞춤 추천</span><h1>나에게 추천하는 게임</h1>
+    <p class="muted">선택하신 부위(${esc(p.parts.join(', '))})와 목적에 관련된 동작이 많은 순서예요. 의학적 적합성을 판단한 결과는 아니에요.</p></div>
+    ${onlyLower()?`<div class="notice warn"><span>!</span><span>현재 게임은 모두 <strong>손·팔 움직임</strong>을 인식해요. 하체 재활 게임은 아직 없어요. 상체 게임을 해도 되는지 담당 의료진과 먼저 상의해 주세요.</span></div>`:''}
+    ${p.caution?`<div class="notice warn"><span>!</span><span><strong>내가 적은 주의사항:</strong> ${esc(p.caution)}</span></div>`:''}
+    ${rec.length?`<div class="grid">${rec.map(r=>gameCard(r.g,r.why,recommendDiff(r.g.id))).join('')}</div>`:`<div class="panel"><p>입력한 정보와 직접 관련된 게임이 없어요. 아래에서 직접 골라 보세요.</p></div>`}
+    ${rest.length?`<h2>다른 게임</h2><div class="grid">${rest.map(r=>gameCard(r.g,null,recommendDiff(r.g.id))).join('')}</div>`:''}
+    <button class="btn btn-ghost" data-go="games">전체 게임 목록 보기</button>
+  </div>`}};
+
+/* 5. 전체 게임 */
+VIEWS.games={html:()=>`<div class="stack">${back()}
+  <div class="page-head"><span class="eyebrow">전체</span><h1>재활 게임</h1><p class="muted">모든 게임은 웹캠으로 손 움직임을 인식해서 진행돼요.</p></div>
+  <div class="grid">${GAMES.map(g=>gameCard(g,null,recommendDiff(g.id))).join('')}</div></div>`};
+
+/* 6. 카메라 연결 + 준비 */
+VIEWS.setup={html:({id})=>{const g=G(id),rd=recommendDiff(id),p=state.profile||{};
+  const diff=rd.up?rd.cur:rd.d;
+  return `<div class="stack">${back('games','게임 목록')}
+    <div class="page-head"><span class="eyebrow">${g.name}</span><h1>${g.icon} ${g.ko} 준비</h1><p class="muted">${g.desc}</p></div>
+    <div class="setup-grid">
+      <form class="stack" id="setupForm">
+        <section class="card"><h2>1. 난이도</h2>
+          ${rd.up?`<div class="notice mint" id="upBox"><span>↑</span><span style="flex:1">${rd.why} <strong>${DIFF[rd.d].label}</strong>로 올려 볼까요? 원할 때만 바꿔요.<span class="row" style="margin-top:8px"><button type="button" class="btn btn-mint" id="upYes" style="min-height:44px">${DIFF[rd.d].label}로 바꾸기</button><button type="button" class="btn btn-ghost" id="upNo" style="min-height:44px">그대로 할게요</button></span></span></div>`:`<p class="small muted">${rd.why}</p>`}
+          <div class="seg">${ORDER.map(k=>`<label class="chip"><input type="radio" name="diff" value="${k}" id="d-${k}" ${k===diff?'checked':''}><span>${DIFF[k].label}</span></label>`).join('')}</div>
+          <p class="small muted" id="diffDesc">${DIFF_DESC[diff]}</p>
+          ${id==='fruit'?`<label class="chip" style="align-self:flex-start"><input type="checkbox" id="bomb" name="bomb"><span>폭탄 모드 (선택) — 💣를 썰면 −15점</span></label>`:''}
+          ${id==='basket'||id==='move'?`<fieldset style="border:0;padding:0;margin:0"><legend class="field-label" style="margin-bottom:8px">잡는 방법</legend>
+            <div class="seg"><label class="chip"><input type="radio" name="grab" value="grip" id="g-grip" ${state.settings.grabMode==='grip'?'checked':''}><span>손 쥐기·펴기</span></label>
+            <label class="chip"><input type="radio" name="grab" value="dwell" id="g-dwell" ${state.settings.grabMode==='dwell'?'checked':''}><span>손 올리고 기다리기</span></label></div>
+            <p class="small muted" style="margin-top:6px">손가락을 쥐기 어려우면 "기다리기"를 고르세요. 물건 위에 손을 잠시 두면 잡히고, 놓을 곳에서 잠시 멈추면 놓여요.</p></fieldset>`:''}
+        </section>
+        <section class="card"><h2>2. 운동 전 상태 체크</h2>${checkForm('pre')}<div id="preMsg"></div></section>
+        ${p.caution?`<div class="notice warn"><span>!</span><span><strong>내 주의사항:</strong> ${esc(p.caution)}</span></div>`:''}
+      </form>
+      <section class="card" aria-live="polite"><h2>3. 카메라 연결</h2>
+        <div class="preview"><canvas id="pv" aria-label="카메라 미리보기"></canvas><div class="ph" id="pvPh">카메라를 켜면 여기에 내 모습과<br>인식된 손이 보여요</div></div>
+        <ul class="steps" id="steps"><li data-s="perm"><span class="dot">1</span>카메라 권한 허용</li><li data-s="model"><span class="dot">2</span>손 인식 기능 준비</li><li data-s="hand"><span class="dot">3</span>손을 화면에 보여주기</li></ul>
+        <div id="camErr"></div>
+        <p class="small muted">카메라에서 50~80cm 떨어져 앉고, 밝은 곳에서 손이 화면 안에 들어오게 해 주세요.</p>
+        <button class="btn btn-soft btn-block" id="camBtn" type="button">카메라 켜기</button>
+        <button class="btn btn-primary btn-block" id="goBtn" type="button" disabled>게임 시작</button>
+        <p class="small muted" id="goWhy">카메라 연결과 상태 체크를 마치면 시작할 수 있어요.</p>
+      </section>
+    </div></div>`},
+  mount({id}){
+    const f=$('#setupForm');bindRangeOut('pre');let camReady=false,handSeen=false;
+    const upd=()=>{
+      const d=f.querySelector('input[name=diff]:checked').value;$('#diffDesc').textContent=DIFF_DESC[d];
+      const c=readCheck(f,'pre');const m=$('#preMsg');let block=false,why='';
+      if(c.cont==='stop'){block=true;m.innerHTML='<div class="notice danger"><span>!</span><span><strong>오늘은 쉬어 가요.</strong> 운동을 계속하기 어렵다면 무리하지 말고 휴식하세요. 증상이 계속되면 의료진과 상담하세요.</span></div>'}
+      else if(c.pain==='yes'){m.innerHTML='<div class="notice warn"><span>!</span><span>통증이 있다면 <strong>쉬움</strong> 난이도로 아주 작게 움직이고, 아프면 바로 "즉시 중단"을 누르세요. 통증이 심하면 오늘은 쉬세요.</span></div>'}
+      else if(c.fatigue>=8){m.innerHTML='<div class="notice warn"><span>!</span><span>피로도가 높아요. 짧게 하거나 휴식을 권해요.</span></div>'}
+      else m.innerHTML='';
+      if(!c.filled)why='상태 체크 질문에 모두 답해 주세요.';
+      if(block)why='오늘은 운동을 쉬는 것을 권해요.';
+      if(!camReady)why=why||'카메라를 먼저 연결해 주세요.';
+      $('#goBtn').disabled=!!why||!camReady;$('#goWhy').textContent=why||(handSeen?'준비 완료! 게임 시작을 누르세요.':'손이 보이면 바로 시작할 수 있어요.');
+    };
+    f.addEventListener('change',upd);f.addEventListener('input',upd);
+    if($('#upYes')){$('#upYes').onclick=()=>{$(`#d-${recommendDiff(id).d}`).checked=true;$('#upBox').remove();upd();toast('난이도를 바꿨어요')};$('#upNo').onclick=()=>$('#upBox').remove()}
+    const setStep=(s,cls)=>{const li=$(`#steps li[data-s="${s}"]`);if(li){li.className=cls;li.querySelector('.dot').textContent=cls==='ok'?'✓':cls==='bad'?'!':li.querySelector('.dot').textContent}};
+    const connect=async()=>{
+      audio();$('#camErr').innerHTML='';$('#camBtn').disabled=true;$('#camBtn').textContent='연결 중…';
+      ['perm','model','hand'].forEach(s=>{const li=$(`#steps li[data-s="${s}"]`);li.className='';});
+      let cur='perm';
+      try{
+        await startCamera(s=>{if(s==='perm'){setStep('perm','on');cur='perm'}if(s==='model'){setStep('perm','ok');setStep('model','on');cur='model'}if(s==='ready'){setStep('model','ok');setStep('hand','on')}});
+        camReady=true;$('#pvPh').hidden=true;bindCanvas($('#pv'));$('#camBtn').textContent='카메라 연결됨';
+        speak('카메라가 연결됐어요. 손을 화면에 보여 주세요.');
+        scene={frame(){const ctx=cam.ctx;drawVideo(ctx);drawHands(ctx,{grip:id==='basket'||id==='move'});
+          if(cam.hands.length&&!handSeen){handSeen=true;setStep('hand','ok');$('#steps li[data-s="hand"]').lastChild.textContent=' 손이 인식됐어요';upd()}}};
+        upd();
+      }catch(e){
+        console.error(e);setStep(cur,'bad');const E=camError(e);stopCamera();
+        $('#camErr').innerHTML=`<div class="notice danger"><span>!</span><span><strong>${E.t}</strong><ol style="margin:6px 0 0;padding-left:1.2em">${E.fix.map(x=>`<li>${x}</li>`).join('')}</ol></span></div>`;
+        $('#camBtn').disabled=false;$('#camBtn').textContent='카메라 다시 연결';speak(E.t);
+      }
+    };
+    $('#camBtn').onclick=connect;
+    $('#goBtn').onclick=()=>{
+      const c=readCheck(f,'pre');const diff=f.querySelector('input[name=diff]:checked').value;
+      const grab=(f.querySelector('input[name=grab]:checked')||{}).value||state.settings.grabMode;
+      if(grab!==state.settings.grabMode){state.settings.grabMode=grab;save('settings')}
+      const rec={id:'c'+Date.now(),date:new Date().toISOString(),phase:'pre',gameId:id,...c};state.checks.push(rec);save('checks');session.pre=rec;
+      go('game',{id,diff,opts:{bomb:!!(f.bomb&&f.bomb.checked),grabMode:grab}});
+    };
+    upd();speak('난이도를 고르고 상태를 체크한 뒤 카메라를 켜 주세요.');
+  }};
+
+/* 7. 게임 진행 */
+VIEWS.game={html:({id,diff})=>{const g=G(id);return `<div class="game-wrap">
+    <div class="row" style="justify-content:space-between"><h2>${g.icon} ${g.ko} <span class="pill">${DIFF[diff].label}</span></h2><span class="pill" id="handPill">손 찾는 중</span></div>
+    <div class="hud" aria-live="off">
+      <div class="h"><span>점수</span><b class="num" id="hScore">0</b></div>
+      <div class="h"><span>남은 시간</span><b class="num" id="hTime">0:00</b></div>
+      <div class="h"><span id="hProgL">진행</span><b class="num" id="hProg">0</b></div>
+      <div class="h"><span>운동 시간</span><b class="num" id="hEl">0:00</b></div>
+    </div>
+    <div class="stage-outer"><div class="stage"><canvas id="gc" aria-label="게임 화면"></canvas>
+      <div class="overlay" id="ov" aria-live="assertive"></div></div></div>
+    <div class="game-actions">
+      <button class="btn btn-danger" id="stopNow">통증·어지러움 — 즉시 중단</button>
+      <button class="btn btn-ghost" id="endBtn">게임 종료</button>
+    </div>
+    <p class="small muted" style="text-align:center">손이 화면에서 사라지면 시간이 멈춰요. 점수는 게임 점수이며 치료 효과를 뜻하지 않아요.</p>
+  </div>`},
+  mount({id,diff,opts}){
+    if(!cam.running){go('setup',{id});return}
+    const c=$('#gc');bindCanvas(c);
+    const env={W:cam.W,H:cam.H,U:cam.U,diff:DIFF[diff],key:diff,opts,fx:makeFx(cam.U)};
+    const game=IMPL[id](env);$('#hProgL').textContent=game.progLabel;
+    let timeLeft=DIFF[diff].time*(game.timeMul||1),elapsed=0,count=3.2,noHand=0,ended=false,hudT=0,lastSpoken=4,started=false;
+    const ov=$('#ov');
+    const finish=(completed,emergency)=>{if(ended)return;ended=true;
+      const rec={id:'r'+Date.now(),type:'game',gameId:id,name:G(id).name,ko:G(id).ko,difficulty:diff,score:game.score,actions:game.actions,durationSec:Math.round(elapsed),completed,emergency:!!emergency,date:new Date().toISOString(),preCheckId:session.pre&&session.pre.id};
+      state.records.push(rec);save('records');go('result',{recId:rec.id})};
+    $('#endBtn').onclick=()=>finish(false);
+    $('#stopNow').onclick=()=>finish(false,true);
+    scene={frame(dt){
+      const ctx=cam.ctx;drawVideo(ctx);
+      if(count>0){count-=dt;const n=Math.ceil(count);if(n!==lastSpoken&&n>=1&&n<=3){lastSpoken=n;SFX.tick();speak(String(n))}
+        if(count<=0){SFX.go();speak('시작!');started=true}
+        ov.innerHTML=count>0?`<div class="count">${Math.ceil(count)}</div>`:'';drawHands(ctx);return}
+      const has=cam.hands.length>0;noHand=has?0:noHand+dt;const paused=noHand>.8;
+      if(!paused){timeLeft-=dt;elapsed+=dt;game.update(dt,cam.hands)}
+      env.fx.update(dt);game.draw(ctx);env.fx.draw(ctx);
+      if(game.drawHands)game.drawHands(ctx);drawHands(ctx,game.drawHandsOpt||{});
+      hudT-=dt;if(hudT<=0){hudT=.2;
+        $('#hScore').textContent=game.score;$('#hTime').textContent=mmss(timeLeft);$('#hProg').textContent=game.progress();$('#hEl').textContent=mmss(elapsed);
+        const hp=$('#handPill');hp.textContent=has?`손 인식 중 (${cam.hands.length})`:'손이 보이지 않아요';hp.className='pill '+(has?'mint':'warn');
+        ov.innerHTML=paused?`<div class="bubble">일시정지 — 손을 화면 안에 보여 주세요<br><span class="small muted">카메라에서 50~80cm 떨어지면 잘 보여요</span></div>`:'';
+      }
+      if(timeLeft<=0||game.done)finish(true);
+    }};
+    speak(`${G(id).ko} 게임을 시작해요.`);
+  }};
+
+/* 8. 결과 */
+VIEWS.result={html:({recId})=>{const r=state.records.find(x=>x.id===recId);if(!r)return '<p>기록을 찾지 못했어요.</p>';const t=todayStats();
+  const playsToday=todays().filter(x=>x.gameId===r.gameId).length;
+  return `<div class="stack">
+    ${r.emergency?`<div class="notice danger" role="alert"><span>!</span><span><strong>운동을 중단했어요. 지금은 쉬세요.</strong> 편한 자세로 앉아 천천히 숨을 쉬세요. 통증이나 어지러움이 계속되거나 심해지면 담당 의료진에게 연락하고, 위급하면 119에 전화하세요.</span></div>`:''}
+    <section class="result-hero"><span class="eyebrow">${r.name}</span><h1>${r.completed?'게임 완료!':r.emergency?'중단한 게임':'게임 종료'}</h1>
+      <div class="big-score num">${r.score}<span style="font-size:1.4rem"> 점</span></div>
+      <p class="small muted">점수와 보상은 게임 결과이며 실제 치료 효과를 의미하지 않아요.</p></section>
+    <div class="kv">
+      <div><span>게임</span><b>${G(r.gameId).ko}</b></div>
+      <div><span>난이도</span><b>${DIFF[r.difficulty].label}</b></div>
+      <div><span>운동 시간</span><b class="num">${mmss(r.durationSec)}</b></div>
+      <div><span>${IMPL_LABEL[r.gameId]}</span><b class="num">${r.actions}</b></div>
+      <div><span>오늘 이 게임 수행</span><b class="num">${playsToday}회</b></div>
+      <div><span>완료 여부</span><b>${r.completed?'완료':'미완료'}</b></div>
+      <div><span>날짜</span><b>${fmtDate(r.date)} ${fmtTime(r.date)}</b></div>
+      <div><span>오늘의 진행률</span><b class="num">${t.games} / ${state.goals.dailyGames}</b></div>
+    </div>
+    <form class="card" id="postForm"><h2>운동 후 상태 체크</h2>${checkForm('post')}
+      <button class="btn btn-primary" type="submit">상태 기록하기</button><div id="postMsg"></div></form>
+    <div class="row">
+      <button class="btn btn-soft" data-go="setup" data-param='${JSON.stringify({id:r.gameId})}' id="againBtn">다시 하기</button>
+      <button class="btn btn-ghost" data-go="games">다른 게임</button>
+      <button class="btn btn-ghost" data-go="records">운동 기록</button>
+      <button class="btn btn-ghost" data-go="main">메인으로</button>
+    </div></div>`},
+  mount({recId}){
+    const r=state.records.find(x=>x.id===recId);if(!r)return;bindRangeOut('post');
+    if(r.emergency){speak('운동을 중단했어요. 지금은 편하게 쉬세요.')}else speak(`${r.score}점이에요. 운동 후 상태를 기록해 주세요.`);
+    $('#postForm').onsubmit=e=>{e.preventDefault();const c=readCheck(e.target,'post');
+      if(!c.filled){$('#postMsg').innerHTML='<p class="err">세 가지 질문에 모두 답해 주세요.</p>';return}
+      const pre=state.checks.find(x=>x.id===r.preCheckId);
+      state.checks.push({id:'c'+Date.now(),date:new Date().toISOString(),phase:'post',gameId:r.gameId,recId:r.id,...c});save('checks');
+      const worse=c.pain==='yes'||c.cont==='stop'||(c.disc==='yes'&&(!pre||pre.disc!=='yes'))||(pre&&c.fatigue-pre.fatigue>=3);
+      r.postChecked=true;r.discomfortAfter=worse||c.disc==='yes';save('records');
+      if(worse){$('#postMsg').innerHTML=`<div class="notice danger" role="alert"><span>!</span><span><strong>운동 전보다 불편함이 늘었어요. 오늘 운동은 여기서 멈추고 쉬세요.</strong> 증상이 계속되면 담당 의료진과 상담하세요.${pre?`<br>피로도 ${pre.fatigue} → ${c.fatigue}`:''}</span></div>`;$('#againBtn').disabled=true;speak('불편함이 늘었어요. 오늘 운동은 여기서 멈추고 쉬세요.')}
+      else{$('#postMsg').innerHTML=`<div class="notice mint"><span>✓</span><span>기록했어요. ${pre?`피로도 ${pre.fatigue} → ${c.fatigue}. `:''}몸 상태를 보며 천천히 이어가세요.</span></div>`;speak('기록했어요.')}
+      e.target.querySelector('button[type=submit]').disabled=true;
+    };
+  }};
+const IMPL_LABEL={fruit:'썬 과일',basket:'넣은 물건',target:'맞힌 목표',balloon:'터뜨린 풍선',move:'완료한 단계'};
+
+/* 9. 재활 운동 */
+function exAnim(k){
+  const ink='#1D2433',b='#7FA8F5',m='#4FC2A6',v='#9B87F0';
+  if(k==='finger')return `<svg viewBox="0 0 200 200"><rect x="62" y="104" width="76" height="70" rx="22" fill="${b}"/><rect x="40" y="118" width="26" height="14" rx="7" fill="${b}" transform="rotate(-30 52 125)"/>
+    <g>${[0,1,2,3].map(i=>`<rect class="fing" x="${66+i*18}" y="${42+(i===0||i===3?10:0)}" width="14" height="${66-(i===0||i===3?10:0)}" rx="7" fill="${m}"/>`).join('')}</g></svg>`;
+  if(k==='wrist')return `<svg viewBox="0 0 200 200"><rect x="84" y="120" width="32" height="70" rx="14" fill="${b}"/><g class="wr"><rect x="74" y="56" width="52" height="64" rx="20" fill="${m}"/><rect x="80" y="30" width="40" height="34" rx="12" fill="${m}"/></g></svg>`;
+  if(k==='reach')return `<svg viewBox="0 0 200 200"><circle cx="58" cy="50" r="18" fill="${v}"/><rect x="44" y="72" width="28" height="80" rx="14" fill="${b}"/><rect x="48" y="150" width="20" height="40" rx="10" fill="${b}"/>
+    <g class="reach"><rect x="60" y="84" width="120" height="16" rx="8" fill="${m}"/></g><circle cx="182" cy="92" r="0" fill="${m}"/></svg>`;
+  if(k==='sweep')return `<svg viewBox="0 0 200 200"><circle cx="100" cy="40" r="18" fill="${v}"/><rect x="80" y="62" width="40" height="80" rx="16" fill="${b}"/>
+    <g class="sweep"><rect x="94" y="78" width="12" height="96" rx="6" fill="${m}" transform="rotate(180 100 82)"/></g><path d="M50 30 q50 -24 100 0" stroke="${ink}" stroke-width="3" fill="none" stroke-dasharray="6 6" opacity=".35"/></svg>`;
+  return `<svg viewBox="0 0 200 200"><circle cx="100" cy="46" r="20" fill="${v}"/><g class="shrug"><rect x="60" y="74" width="80" height="22" rx="11" fill="${m}"/><rect x="58" y="80" width="16" height="70" rx="8" fill="${m}"/><rect x="126" y="80" width="16" height="70" rx="8" fill="${m}"/></g><rect x="78" y="88" width="44" height="76" rx="16" fill="${b}"/></svg>`;
+}
+VIEWS.exercises={html:()=>{const p=state.profile||{parts:[]};return `<div class="stack">${back()}
+  <div class="page-head"><span class="eyebrow">맨손 운동</span><h1>간단한 재활 운동</h1><p class="muted">그림과 음성 안내를 따라 천천히 해요. 아프지 않은 범위에서만 움직이세요.</p></div>
+  <div class="notice warn"><span>!</span><span>이 운동은 일반적인 가벼운 움직임 예시예요. <strong>실제 재활 운동은 담당 의료진의 안내를 따르세요.</strong> 의료진이 제한한 동작은 하지 마세요.${p.caution?`<br><strong>내 주의사항:</strong> ${esc(p.caution)}`:''}</span></div>
+  <div class="grid">${EXERCISES.map(x=>{const rel=x.parts.some(q=>p.parts.includes(q));return `<article class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><h3>${x.name}</h3>${rel?'<span class="pill mint">선택 부위 관련</span>':''}</div>
+    <p class="small muted">${x.purpose}</p><div class="meta"><span class="pill">${mmss(x.sec)} 분</span><span class="pill">${x.reps}</span></div>
+    <button class="btn btn-soft btn-block" data-go="exercise" data-param='${JSON.stringify({id:x.id})}'>운동 안내 보기</button></article>`}).join('')}</div></div>`}};
+
+let exTimer=null;
+VIEWS.exercise={html:({id})=>{const x=EXERCISES.find(e=>e.id===id);return `<div class="stack">${back('exercises','운동 목록')}
+  <div class="page-head"><span class="eyebrow">재활 운동 안내</span><h1>${x.name}</h1></div>
+  <div class="setup-grid">
+    <div class="stack"><div class="ex-anim" aria-hidden="true">${exAnim(x.anim)}</div>
+      <div class="kv"><div><span>운동 목적</span><b style="font-size:1rem">${x.purpose}</b></div><div><span>운동 시간</span><b>${mmss(x.sec)}</b></div><div><span>권장 횟수</span><b>${x.reps}</b></div></div></div>
+    <section class="card"><h2>운동 방법</h2><ol class="ex-steps" id="exSteps">${x.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      <button class="btn btn-ghost" id="listen">음성 안내 듣기</button>
+      <div class="panel" style="align-items:center;text-align:center"><div class="timer num" id="exT">${mmss(x.sec)}</div><p class="small muted" id="exMsg">시작을 누르면 단계별로 안내해요.</p>
+        <div class="row" style="justify-content:center"><button class="btn btn-primary" id="exStart">시작</button><button class="btn btn-ghost" id="exDone" disabled>끝내고 기록</button></div></div>
+      <button class="btn btn-danger-soft" id="exStop">불편하면 즉시 멈추기</button>
+      <p class="small muted">기록에는 실제로 진행한 시간만 저장돼요. 횟수는 따로 측정하지 않아요.</p>
+    </section></div></div>`},
+  mount({id}){const x=EXERCISES.find(e=>e.id===id);let left=x.sec,el=0,running=false,stepI=-1;
+    const lis=$$('#exSteps li');
+    const setStep=i=>{stepI=i;lis.forEach((l,j)=>l.classList.toggle('cur',j===i));speak(`${i+1}단계. ${x.steps[i]}`)};
+    $('#listen').onclick=()=>speak(x.name+'. '+x.steps.map((s,i)=>`${i+1}. ${s}`).join(' '),true);
+    const stop=()=>{clearInterval(exTimer);exTimer=null;running=false};
+    const record=()=>{stop();if(el<5){toast('5초 이상 진행해야 기록돼요');return}
+      state.records.push({id:'r'+Date.now(),type:'exercise',exId:x.id,name:x.name,ko:x.name,durationSec:el,completed:left<=0,date:new Date().toISOString(),score:0,actions:0});save('records');
+      toast('운동 시간을 기록했어요');speak('수고하셨어요. 기록했어요.');go('exercises')};
+    $('#exStart').onclick=()=>{if(running){stop();$('#exStart').textContent='계속';$('#exMsg').textContent='잠시 멈췄어요.';return}
+      running=true;$('#exStart').textContent='일시정지';$('#exDone').disabled=false;if(stepI<0)setStep(0);$('#exMsg').textContent='천천히 따라 하세요.';
+      exTimer=setInterval(()=>{left--;el++;$('#exT').textContent=mmss(left);
+        const per=Math.max(6,Math.floor(x.sec/(x.steps.length*2)));if(el%per===0)setStep((stepI+1)%x.steps.length);
+        if(left<=0){$('#exMsg').textContent='시간이 다 됐어요!';record()}},1000)};
+    $('#exDone').onclick=record;
+    $('#exStop').onclick=()=>{stop();$('#exMsg').innerHTML='<strong style="color:var(--danger)">운동을 멈췄어요. 편하게 쉬세요.</strong> 불편함이 계속되면 의료진과 상담하세요.';speak('운동을 멈췄어요. 편하게 쉬세요.');if(el>=5){$('#exDone').disabled=false}};
+  }};
+
+/* 10. 운동 기록 */
+VIEWS.records={html:()=>{
+  const R=state.records,t=todayStats(),w=last7();const games=R.filter(r=>r.type==='game');
+  const totalSec=R.reduce((a,r)=>a+r.durationSec,0),doneGames=games.filter(r=>r.completed).length;
+  const byGame=GAMES.map(g=>{const rs=games.filter(r=>r.gameId===g.id);return{g,n:rs.length,best:rs.reduce((a,r)=>Math.max(a,r.score),0),last:rs.length?rs[rs.length-1].score:null}});
+  const maxBest=Math.max(10,...byGame.map(b=>b.best));
+  const days={};[...R].reverse().forEach(r=>{const k=ymd(r.date);(days[k]=days[k]||[]).push(r)});
+  return `<div class="stack">${back()}
+  <div class="page-head"><span class="eyebrow">기록</span><h1>운동 기록</h1><p class="muted">게임과 운동에서 실제로 측정한 값만 보여줘요.</p></div>
+  <div class="kv">
+    <div><span>오늘 완료한 게임</span><b class="num">${t.games}개</b></div>
+    <div><span>오늘 운동 시간</span><b class="num">${minText(t.sec)}</b></div>
+    <div><span>이번 주 운동한 날</span><b class="num">${w.filter(d=>d.n).length}일</b></div>
+    <div><span>총 운동 시간</span><b class="num">${minText(totalSec)}</b></div>
+    <div><span>완료한 게임 수</span><b class="num">${doneGames}개</b></div>
+  </div>
+  <section class="card"><h2>주간 운동 시간</h2><p class="small muted">최근 7일 · 점선은 하루 목표 ${state.goals.dailyMinutes}분</p><div class="chart-box"><canvas id="wk" role="img" aria-label="최근 7일 운동 시간 막대 그래프"></canvas></div></section>
+  <section class="card"><h2>게임별 점수</h2>
+    ${byGame.map(b=>`<div class="bar-row"><span class="small" style="font-weight:600">${b.g.icon} ${b.g.ko}</span><div class="bar"><i style="width:${b.best/maxBest*100}%"></i></div><span class="small num muted">${b.n?`최고 ${b.best} · 최근 ${b.last} · ${b.n}회`:'기록 없음'}</span></div>`).join('')}
+  </section>
+  <section class="card"><h2>날짜별 기록</h2>
+    ${Object.keys(days).length?Object.entries(days).map(([k,rs])=>`<div class="log-day"><h3>${fmtDate(k)}${k===today()?' · 오늘':''}</h3>
+      ${rs.map(r=>`<div class="log-item"><span><b>${r.type==='game'?G(r.gameId).icon+' '+G(r.gameId).ko:'🧘 '+esc(r.name)}</b> <span class="small muted">${fmtTime(r.date)}${r.type==='game'?' · '+DIFF[r.difficulty].label:''}</span></span>
+        <span class="small num">${r.type==='game'?`${r.score}점 · ${IMPL_LABEL[r.gameId]} ${r.actions} · `:''}${mmss(r.durationSec)} · ${r.emergency?'<span class="pill danger">중단</span>':r.completed?'<span class="pill mint">완료</span>':'<span class="pill">미완료</span>'}</span></div>`).join('')}</div>`).join(''):
+      `<div class="panel" style="align-items:flex-start"><p>아직 기록이 없어요. 게임이나 재활 운동을 하면 여기에 날짜별로 쌓여요.</p><button class="btn btn-primary" data-go="recommend">첫 게임 하러 가기</button></div>`}
+  </section>
+  <p class="small muted">점수는 게임 결과이며 신체 회복 정도나 치료 효과를 뜻하지 않아요.</p></div>`},
+  mount(){drawWeek($('#wk'),last7(),state.goals.dailyMinutes)}};
+function drawWeek(c,data,goal){
+  const dpr=window.devicePixelRatio||1,w=c.clientWidth||600,h=240;c.width=w*dpr;c.height=h*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);
+  const pl=40,pr=12,pt=16,pb=34,cw=w-pl-pr,ch=h-pt-pb;const vals=data.map(d=>d.sec/60);
+  const max=Math.max(goal*1.2,...vals,5);const step=max>40?20:max>20?10:5;const top=Math.ceil(max/step)*step;
+  const css=getComputedStyle(document.documentElement);const muted=css.getPropertyValue('--muted').trim(),line=css.getPropertyValue('--line').trim();
+  x.font='12px "IBM Plex Sans KR",sans-serif';x.fillStyle=muted;x.textAlign='right';x.textBaseline='middle';
+  for(let v=0;v<=top;v+=step){const y=pt+ch-(v/top)*ch;x.strokeStyle=line;x.lineWidth=1;x.beginPath();x.moveTo(pl,y);x.lineTo(w-pr,y);x.stroke();x.fillText(v+'분',pl-6,y)}
+  const bw=cw/data.length;
+  data.forEach((d,i)=>{const v=vals[i],bh=(v/top)*ch,bx=pl+i*bw+bw*.22,bwid=bw*.56,by=pt+ch-bh;const isT=d.key===today();
+    x.fillStyle=isT?'#3B68CF':'#7FA8F5';if(bh>0){x.beginPath();x.roundRect?x.roundRect(bx,by,bwid,bh,[8,8,0,0]):x.rect(bx,by,bwid,bh);x.fill()}
+    x.fillStyle=muted;x.textAlign='center';x.textBaseline='top';x.fillText(`${d.d.getMonth()+1}/${d.d.getDate()}`,bx+bwid/2,pt+ch+8);
+    if(v>0){x.fillStyle=css.getPropertyValue('--ink').trim();x.textBaseline='bottom';x.fillText((Math.round(v*10)/10)+'',bx+bwid/2,by-3)}});
+  const gy=pt+ch-(goal/top)*ch;x.strokeStyle='#1E8A71';x.setLineDash([6,5]);x.lineWidth=2;x.beginPath();x.moveTo(pl,gy);x.lineTo(w-pr,gy);x.stroke();x.setLineDash([]);
+}
+
+/* 11. 재활 목표 */
+VIEWS.goals={html:()=>{const g=state.goals,t=todayStats(),wd=weekDaysActive(),L=level(),B=badges();
+  const bar=(v,m)=>`<div class="progress"><i style="width:${Math.min(100,v/m*100)}%"></i></div>`;
+  const step=(k,label,unit,min,max)=>`<div class="stack" style="gap:8px"><span class="field-label">${label}</span><div class="stepper"><button type="button" data-k="${k}" data-d="-1" aria-label="${label} 줄이기">−</button><output id="o-${k}">${g[k]}${unit}</output><button type="button" data-k="${k}" data-d="1" aria-label="${label} 늘리기">+</button></div></div>`;
+  return `<div class="stack">${back()}
+  <div class="page-head"><span class="eyebrow">목표와 보상</span><h1>재활 목표</h1></div>
+  <section class="char-card theme-${state.theme}"><div>${charSVG(L.l)}</div>
+    <div class="stack" style="gap:8px"><span class="eyebrow">나의 캐릭터 무브</span><h2>${L.L.name} 단계</h2><p>${L.L.msg}</p>
+    <p class="small muted">목표 달성 포인트 ${L.p}점${L.next?` · 다음 단계까지 ${L.next.min-L.p}점`:' · 최고 단계'}</p></div></section>
+  <section class="card"><h2>목표 설정</h2>
+    <div class="grid-3">${step('dailyGames','하루 게임','개',1,10)}${step('dailyMinutes','하루 운동 시간','분',5,60)}${step('weeklyDays','일주일 운동','일',1,7)}</div>
+    <p class="small muted">하루 게임·시간 목표를 달성하면 각 1점, 주간 목표는 2점이에요. 의료진이 권한 운동량을 넘지 않게 정하세요.</p></section>
+  <section class="card"><h2>달성 현황</h2>
+    <div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span>오늘 게임</span><b class="num">${t.games} / ${g.dailyGames}개</b></div>${bar(t.games,g.dailyGames)}</div>
+    <div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span>오늘 운동 시간</span><b class="num">${minText(t.sec)} / ${g.dailyMinutes}분</b></div>${bar(t.sec,g.dailyMinutes*60)}</div>
+    <div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span>최근 7일 운동한 날</span><b class="num">${wd} / ${g.weeklyDays}일</b></div>${bar(wd,g.weeklyDays)}</div>
+    ${t.games>=g.dailyGames&&t.sec>=g.dailyMinutes*60?'<div class="notice mint"><span>✓</span><span><strong>오늘 목표를 모두 달성했어요!</strong> 잘하셨어요.</span></div>':''}</section>
+  <section class="card"><h2>배경 바꾸기</h2><p class="small muted">캐릭터 단계가 오르면 새 배경이 열려요.</p>
+    <div class="theme-pick">${THEMES.map(th=>`<button type="button" class="theme-${th.id}" data-theme="${th.id}" aria-pressed="${state.theme===th.id}" ${L.l<th.lv?'disabled':''} aria-label="${th.name} 배경${L.l<th.lv?` (${LEVELS[th.lv].name} 단계에서 열림)`:''}" title="${th.name}"></button>`).join('')}</div></section>
+  <section class="card"><h2>배지 <span class="small muted">${B.filter(b=>b.ok).length}/${B.length}</span></h2>
+    <div class="badges">${B.map(b=>`<div class="badge ${b.ok?'':'locked'}"><div class="bi" aria-hidden="true">${b.i}</div><b>${b.n}</b><span>${b.d}</span></div>`).join('')}</div></section>
+  <p class="small muted">점수, 캐릭터, 배지는 꾸준한 참여를 응원하는 게임 보상이며 실제 치료 효과를 의미하지 않아요.</p></div>`},
+  mount(){
+    const lim={dailyGames:[1,10,1,'개'],dailyMinutes:[5,60,5,'분'],weeklyDays:[1,7,1,'일']};
+    $$('.stepper button').forEach(b=>b.onclick=()=>{const k=b.dataset.k,[mn,mx,st]=lim[k];state.goals[k]=Math.max(mn,Math.min(mx,state.goals[k]+st*+b.dataset.d));save('goals');go('goals')});
+    $$('.theme-pick button').forEach(b=>b.onclick=()=>{state.theme=b.dataset.theme;store.set('theme',state.theme);go('goals')});
+  }};
+
+/* 12. 설정 */
+VIEWS.settings={html:()=>{const p=state.profile||{},s=state.settings;
+  const tog=(k,l,d)=>`<div class="row" style="justify-content:space-between"><span><b>${l}</b><br><span class="small muted">${d}</span></span><button class="icon-btn" data-tog="${k}" aria-pressed="${!!s[k]}" style="min-width:76px">${s[k]?'켜짐':'꺼짐'}</button></div>`;
+  return `<div class="stack">${back()}
+  <div class="page-head"><span class="eyebrow">설정</span><h1>사용자 정보 · 설정</h1></div>
+  <section class="card"><div class="row" style="justify-content:space-between"><h2>${esc(p.name)}님</h2><button class="btn btn-soft" data-go="profile" style="min-height:48px">정보 수정</button></div>
+    <div class="kv"><div><span>나이</span><b>${esc(p.age||'-')}</b></div><div><span>불편한 부위</span><b>${esc((p.parts||[]).join(', '))}</b></div><div><span>재활 목적</span><b style="font-size:1rem">${esc((p.purposes||[]).join(', '))}</b></div></div>
+    ${p.discomfort?`<p><b>움직임의 불편함:</b> ${esc(p.discomfort)}</p>`:''}${p.caution?`<p><b>주의사항:</b> ${esc(p.caution)}</p>`:''}</section>
+  <section class="card"><h2>보기 · 소리</h2>
+    <div class="stack" style="gap:8px"><b>글자 크기</b><div class="seg">${[[1,'보통'],[1.15,'크게'],[1.3,'아주 크게']].map(([v,l])=>`<label class="chip"><input type="radio" name="fs" value="${v}" id="fs-${l}" ${s.fontScale==v?'checked':''}><span>${l}</span></label>`).join('')}</div></div>
+    ${tog('voice','음성 안내','화면 안내와 카운트다운을 읽어 줘요')}
+    ${tog('sound','효과음','과일 썰기, 풍선 터지는 소리 등')}
+    ${tog('mirror','거울 모드','카메라 화면을 거울처럼 좌우 반전해요 (권장)')}
+  </section>
+  <section class="card"><h2>데이터</h2><p class="small muted">모든 정보와 기록은 이 기기의 브라우저에만 저장돼요. 다른 기기와 공유되지 않아요.</p>
+    <div id="resetBox"><button class="btn btn-danger-soft" id="reset1">모든 기록 지우기</button></div></section>
+  <p class="small muted">Re:Move v1.0 · 손 인식: Google MediaPipe Hand Landmarker</p></div>`},
+  mount(){
+    $$('input[name=fs]').forEach(r=>r.onchange=()=>{state.settings.fontScale=+r.value;save('settings');applySettings()});
+    $$('[data-tog]').forEach(b=>b.onclick=()=>{const k=b.dataset.tog;state.settings[k]=!state.settings[k];save('settings');applySettings();go('settings')});
+    $('#reset1').onclick=()=>{$('#resetBox').innerHTML='<div class="notice danger"><span>!</span><span style="flex:1">정말 지울까요? 정보·기록·목표가 모두 사라지고 되돌릴 수 없어요.<span class="row" style="margin-top:8px"><button class="btn btn-danger" id="reset2" style="min-height:44px">네, 모두 지우기</button><button class="btn btn-ghost" id="resetNo" style="min-height:44px">취소</button></span></span></div>';
+      $('#resetNo').onclick=()=>go('settings');
+      $('#reset2').onclick=()=>{try{Object.keys(localStorage).filter(k=>k.startsWith('remove:')).forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}};
+  }};
+
+/* ============ 헤더 · 시작 ============ */
+function applySettings(){
+  document.documentElement.style.setProperty('--fs',state.settings.fontScale);
+  $('#fontLbl').textContent={1:'보통',1.15:'크게',1.3:'아주 크게'}[state.settings.fontScale]||'보통';
+  $('#voiceBtn').setAttribute('aria-pressed',state.settings.voice);$('#voiceWave').style.opacity=state.settings.voice?1:.15;
+}
+$('#fontBtn').onclick=()=>{const seq=[1,1.15,1.3];state.settings.fontScale=seq[(seq.indexOf(state.settings.fontScale)+1)%3];save('settings');applySettings();if(current.name==='records')drawWeek($('#wk'),last7(),state.goals.dailyMinutes)};
+$('#voiceBtn').onclick=()=>{state.settings.voice=!state.settings.voice;save('settings');applySettings();if(state.settings.voice)speak('음성 안내를 켰어요.');else try{speechSynthesis.cancel()}catch(e){}};
+$('#homeBtn').onclick=()=>go(state.profile?'main':'start');
+$('#logoBtn').onclick=()=>go(state.profile?'main':'start');
+window.addEventListener('resize',()=>{if(current.name==='records')drawWeek($('#wk'),last7(),state.goals.dailyMinutes)});
+if(window.speechSynthesis)try{speechSynthesis.getVoices()}catch(e){}
+applySettings();
+go('start');
+</script>
+</body>
+</html>
